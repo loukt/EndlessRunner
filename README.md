@@ -1,6 +1,10 @@
 # Endless Runner
 
-A cross-platform 2D endless runner game built with PixiJS and deployed as a Progressive Web App (PWA).
+# Endless Runner Game
+
+> Version 1.0.0 - GitHub Pages Deployment
+
+A fast-paced 2D endless runner game built with JavaScript and PixiJS.
 
 ## Features
 
