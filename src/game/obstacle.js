@@ -40,9 +40,32 @@ export class ObstacleManager {
     }
 
     const graphics = new PIXI.Graphics();
-    graphics.beginFill(config.color);
-    graphics.drawRect(0, 0, config.width, config.height);
-    graphics.endFill();
+    
+    // Draw stack of money bills
+    const billHeight = 4; // Height of each bill
+    const numBills = Math.floor(config.height / billHeight);
+    
+    for (let i = 0; i < numBills; i++) {
+      const yPos = i * billHeight;
+      
+      // Alternate green shades for depth
+      const greenShade = i % 2 === 0 ? 0x2ECC71 : 0x27AE60;
+      
+      // Main bill body (green)
+      graphics.beginFill(greenShade);
+      graphics.drawRect(0, yPos, config.width, billHeight);
+      graphics.endFill();
+      
+      // Dollar sign detail (darker green)
+      graphics.beginFill(0x1E7E34);
+      const signX = config.width / 2 - 1;
+      graphics.drawRect(signX, yPos + 1, 2, billHeight - 2);
+      graphics.endFill();
+      
+      // Border on bills
+      graphics.lineStyle(0.5, 0x1E7E34, 1);
+      graphics.drawRect(0, yPos, config.width, billHeight);
+    }
 
     // Create sprite from graphics (PixiJS v7 API)
     const texture = this.renderer.generateTexture(graphics);

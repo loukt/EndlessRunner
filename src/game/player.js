@@ -24,11 +24,54 @@ export class Player {
    * @param {PIXI.Renderer} renderer - PixiJS renderer for texture generation
    */
   create(stage, renderer) {
-    // Create a simple rectangle for the player
+    // Create businessman sprite using graphics
     const graphics = new PIXI.Graphics();
-    graphics.beginFill(0x4A90E2); // Blue color
-    graphics.drawRect(0, 0, CONFIG.PLAYER.WIDTH, CONFIG.PLAYER.HEIGHT);
+    
+    // Draw businessman character
+    // Head (circle with skin tone)
+    graphics.beginFill(0xFFDBB5); // Skin tone
+    graphics.drawCircle(20, 8, 8); // Head
     graphics.endFill();
+    
+    // Suit jacket (dark blue/black)
+    graphics.beginFill(0x1A1A2E); // Dark suit
+    graphics.drawRect(12, 16, 16, 22); // Torso
+    graphics.endFill();
+    
+    // White shirt/collar
+    graphics.beginFill(0xFFFFFF);
+    graphics.drawRect(16, 18, 8, 4); // Collar
+    graphics.endFill();
+    
+    // Red tie
+    graphics.beginFill(0xCC0000);
+    graphics.drawRect(18, 22, 4, 10); // Tie
+    graphics.endFill();
+    
+    // Arms (running pose - one forward, one back)
+    graphics.beginFill(0x1A1A2E);
+    graphics.drawRect(8, 20, 4, 12); // Left arm (back)
+    graphics.drawRect(28, 22, 4, 10); // Right arm (forward)
+    graphics.endFill();
+    
+    // Pants (dark gray)
+    graphics.beginFill(0x333333);
+    graphics.drawRect(12, 38, 7, 22); // Left leg
+    graphics.drawRect(21, 38, 7, 22); // Right leg
+    graphics.endFill();
+    
+    // Shoes (black)
+    graphics.beginFill(0x000000);
+    graphics.drawRect(10, 58, 9, 4); // Left shoe
+    graphics.drawRect(21, 58, 9, 4); // Right shoe
+    graphics.endFill();
+    
+    // Briefcase (brown, held in hand)
+    graphics.beginFill(0x8B4513);
+    graphics.drawRect(28, 32, 8, 6);
+    graphics.endFill();
+    graphics.lineStyle(1, 0x654321);
+    graphics.drawRect(28, 32, 8, 6);
 
     // Create sprite from graphics (PixiJS v7 API)
     const texture = renderer.generateTexture(graphics);
