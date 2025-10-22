@@ -11,6 +11,7 @@ export class HUD {
   constructor() {
     this.container = null;
     this.scoreText = null;
+    this.levelText = null;
     this.gameOverText = null;
     this.instructionText = null;
   }
@@ -36,6 +37,19 @@ export class HUD {
     this.scoreText.x = CONFIG.CANVAS.WIDTH / 2;
     this.scoreText.y = 20;
     this.container.addChild(this.scoreText);
+
+    // Level indicator (top left)
+    this.levelText = new PIXI.Text('Level: 1', {
+      fontFamily: 'Arial',
+      fontSize: 24,
+      fill: 0xFFDD44,
+      stroke: 0x000000,
+      strokeThickness: 3,
+      align: 'left'
+    });
+    this.levelText.x = 20;
+    this.levelText.y = 20;
+    this.container.addChild(this.levelText);
 
     // Instruction text (center)
     this.instructionText = new PIXI.Text('Click or Tap to Jump!', {
@@ -70,10 +84,14 @@ export class HUD {
   /**
    * Update score display
    * @param {number} score - Current score
+   * @param {number} level - Current difficulty level (optional)
    */
-  updateScore(score) {
+  updateScore(score, level = null) {
     if (this.scoreText) {
       this.scoreText.text = `Score: ${score}`;
+    }
+    if (level !== null && this.levelText) {
+      this.levelText.text = `Level: ${level}`;
     }
   }
 

@@ -20,6 +20,7 @@ import { Menu } from './ui/menu.js';
 import { GameSession } from './data/session.js';
 import { ParticleSystem } from './game/particles.js';
 import { CameraEffects } from './game/camera.js';
+import { DifficultyManager } from './game/difficulty.js';
 
 /**
  * Main application class
@@ -32,6 +33,7 @@ class Game {
     this.storage = null;
     this.player = null;
     this.obstacleManager = null;
+    this.difficultyManager = null;
     this.scoring = null;
     this.hud = null;
     this.menu = null;
@@ -175,12 +177,15 @@ class Game {
     ground.lineTo(CONFIG.CANVAS.WIDTH, CONFIG.PHYSICS.GROUND_Y);
     stage.addChild(ground);
 
+    // Create difficulty manager
+    this.difficultyManager = new DifficultyManager();
+
     // Create player
     this.player = new Player();
     this.player.create(stage, pixiRenderer);
 
-    // Create obstacle manager
-    this.obstacleManager = new ObstacleManager();
+    // Create obstacle manager with difficulty manager
+    this.obstacleManager = new ObstacleManager(this.difficultyManager);
     this.obstacleManager.create(stage, pixiRenderer);
 
     // Create scoring
@@ -277,6 +282,7 @@ class Game {
   restartGame() {
     this.player.reset();
     this.obstacleManager.reset();
+    this.difficultyManager.reset();
     this.scoring.reset();
     this.hud.reset();
     this.session.reset();
@@ -423,15 +429,19 @@ class Game {
         );
       }
 
-      // Update obstacles and track passed obstacles
-      const obstaclesPassed = this.obstacleManager.update(deltaTime, this.scrollSpeed);
-      if (obstaclesPassed > 0) {
+      // Update difficulty based on current score
+      const currentScore = this.scoring.getScore();
+      const obstaclesPassed = this.session.obstaclesPassed;
+      this.difficultyManager.update(currentScore, obstaclesPassed);
+      
+      // Update scroll speed based on difficulty
+      const speedMultiplier = this.difficultyManager.getSpeedMultiplier();
+      this.scrollSpeed = CONFIG.PLAYER.RUN_SPEED * speedMultiplier;
+
+      // Update obstacles
+      const newObstaclesPassed = this.obstacleManager.update(deltaTime, this.scrollSpeed);
+      if (newObstaclesPassed > 0) {
         this.session.incrementObstacles();
-        // Gradually increase difficulty (speed)
-        this.scrollSpeed = Math.min(
-          this.scrollSpeed + (obstaclesPassed * 2),
-          CONFIG.PLAYER.RUN_SPEED * 1.5
-        );
       }
 
       // Update scoring
@@ -440,8 +450,9 @@ class Game {
       // Check collisions
       this.checkCollisions();
 
-      // Update HUD
-      this.hud.updateScore(this.scoring.getScore());
+      // Update HUD with score and level indicator
+      const currentLevel = this.difficultyManager.level;
+      this.hud.updateScore(this.scoring.getScore(), currentLevel);
     }
 
     // Update particles (always, even when not playing for fade out)

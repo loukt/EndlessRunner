@@ -8,13 +8,13 @@ import * as PIXI from 'pixi.js';
 import { CONFIG } from '../config.js';
 
 export class ObstacleManager {
-  constructor() {
+  constructor(difficultyManager) {
     this.obstacles = [];
     this.container = null;
     this.renderer = null;
-    this.nextSpawnDistance = CONFIG.OBSTACLES.MIN_SPACING;
+    this.nextSpawnDistance = CONFIG.OBSTACLES.MAX_SPACING;
     this.traveledDistance = 0;
-    this.currentSpacing = CONFIG.OBSTACLES.MIN_SPACING;
+    this.difficultyManager = difficultyManager;
   }
 
   /**
@@ -29,22 +29,33 @@ export class ObstacleManager {
   }
 
   /**
-   * Create a new obstacle
+   * Create a new obstacle with specific configuration
+   * @param {Object} config - Obstacle configuration (height, width, color)
    * @returns {PIXI.Sprite}
    */
-  createObstacle() {
+  createObstacle(config = null) {
+    // Get config from difficulty manager if not provided
+    if (!config) {
+      config = this.difficultyManager.getObstacleConfig();
+    }
+
     const graphics = new PIXI.Graphics();
-    graphics.beginFill(0x8B4513); // Brown color
-    graphics.drawRect(0, 0, CONFIG.OBSTACLES.WIDTH, CONFIG.OBSTACLES.HEIGHT);
+    graphics.beginFill(config.color);
+    graphics.drawRect(0, 0, config.width, config.height);
     graphics.endFill();
 
     // Create sprite from graphics (PixiJS v7 API)
     const texture = this.renderer.generateTexture(graphics);
     const sprite = new PIXI.Sprite(texture);
     
+    // Store obstacle data for reference
+    sprite.obstacleType = config.type;
+    sprite.obstacleHeight = config.height;
+    sprite.obstacleWidth = config.width;
+    
     // Position at right edge of screen, on ground
     sprite.x = CONFIG.CANVAS.WIDTH;
-    sprite.y = CONFIG.PHYSICS.GROUND_Y - CONFIG.OBSTACLES.HEIGHT;
+    sprite.y = CONFIG.PHYSICS.GROUND_Y - config.height;
     
     return sprite;
   }
@@ -84,27 +95,38 @@ export class ObstacleManager {
   }
 
   /**
-   * Spawn a new obstacle
+   * Spawn a new obstacle or pattern
    */
   spawnObstacle() {
-    const obstacle = this.createObstacle();
-    this.container.addChild(obstacle);
-    this.obstacles.push(obstacle);
+    // Check if we should spawn a pattern (higher levels)
+    if (this.difficultyManager.shouldUsePattern()) {
+      this.spawnPattern();
+    } else {
+      // Spawn single obstacle
+      const obstacle = this.createObstacle();
+      this.container.addChild(obstacle);
+      this.obstacles.push(obstacle);
+    }
 
-    // Calculate next spawn distance with gradual reduction
-    const minSpacing = CONFIG.OBSTACLES.MIN_SPACING;
-    const maxSpacing = CONFIG.OBSTACLES.MAX_SPACING;
-    const reductionRate = CONFIG.OBSTACLES.SPACING_REDUCTION_RATE;
+    // Calculate next spawn distance using difficulty manager
+    const spacing = this.difficultyManager.getObstacleSpacing();
+    const variance = this.difficultyManager.getSpawnVariance();
+    
+    this.nextSpawnDistance = this.traveledDistance + spacing + variance;
+  }
 
-    // Reduce spacing over time but maintain minimum
-    this.currentSpacing = Math.max(
-      minSpacing,
-      this.currentSpacing * reductionRate
-    );
-
-    // Add some randomness
-    const randomOffset = (Math.random() - 0.5) * 50;
-    this.nextSpawnDistance = this.traveledDistance + this.currentSpacing + randomOffset;
+  /**
+   * Spawn a pattern of multiple obstacles
+   */
+  spawnPattern() {
+    const pattern = this.difficultyManager.getObstaclePattern();
+    
+    for (const item of pattern) {
+      const obstacle = this.createObstacle(item.config);
+      obstacle.x += item.offsetX; // Apply pattern offset
+      this.container.addChild(obstacle);
+      this.obstacles.push(obstacle);
+    }
   }
 
   /**
@@ -115,8 +137,8 @@ export class ObstacleManager {
     return this.obstacles.map(obstacle => ({
       x: obstacle.x,
       y: obstacle.y,
-      width: CONFIG.OBSTACLES.WIDTH,
-      height: CONFIG.OBSTACLES.HEIGHT
+      width: obstacle.obstacleWidth || CONFIG.OBSTACLES.WIDTH,
+      height: obstacle.obstacleHeight || CONFIG.OBSTACLES.HEIGHT
     }));
   }
 
@@ -132,8 +154,7 @@ export class ObstacleManager {
     
     this.obstacles = [];
     this.traveledDistance = 0;
-    this.nextSpawnDistance = CONFIG.OBSTACLES.MIN_SPACING;
-    this.currentSpacing = CONFIG.OBSTACLES.MIN_SPACING;
+    this.nextSpawnDistance = CONFIG.OBSTACLES.MAX_SPACING;
   }
 
   /**
