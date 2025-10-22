@@ -1,0 +1,151 @@
+/**
+ * Obstacle Manager Module
+ * 
+ * Manages obstacle generation, movement, and lifecycle.
+ */
+
+import * as PIXI from 'pixi.js';
+import { CONFIG } from '../config.js';
+
+export class ObstacleManager {
+  constructor() {
+    this.obstacles = [];
+    this.container = null;
+    this.renderer = null;
+    this.nextSpawnDistance = CONFIG.OBSTACLES.MIN_SPACING;
+    this.traveledDistance = 0;
+    this.currentSpacing = CONFIG.OBSTACLES.MIN_SPACING;
+  }
+
+  /**
+   * Initialize obstacle container
+   * @param {PIXI.Container} stage - PixiJS stage
+   * @param {PIXI.Renderer} renderer - PixiJS renderer for texture generation
+   */
+  create(stage, renderer) {
+    this.container = new PIXI.Container();
+    this.renderer = renderer;
+    stage.addChild(this.container);
+  }
+
+  /**
+   * Create a new obstacle
+   * @returns {PIXI.Sprite}
+   */
+  createObstacle() {
+    const graphics = new PIXI.Graphics();
+    graphics.beginFill(0x8B4513); // Brown color
+    graphics.drawRect(0, 0, CONFIG.OBSTACLES.WIDTH, CONFIG.OBSTACLES.HEIGHT);
+    graphics.endFill();
+
+    // Create sprite from graphics (PixiJS v7 API)
+    const texture = this.renderer.generateTexture(graphics);
+    const sprite = new PIXI.Sprite(texture);
+    
+    // Position at right edge of screen, on ground
+    sprite.x = CONFIG.CANVAS.WIDTH;
+    sprite.y = CONFIG.PHYSICS.GROUND_Y - CONFIG.OBSTACLES.HEIGHT;
+    
+    return sprite;
+  }
+
+  /**
+   * Update obstacles (movement and spawning)
+   * @param {number} deltaTime - Time elapsed since last frame
+   * @param {number} scrollSpeed - Current scroll speed
+   * @returns {number} Number of obstacles that passed off screen
+   */
+  update(deltaTime, scrollSpeed) {
+    let obstaclesPassed = 0;
+
+    // Move existing obstacles
+    for (let i = this.obstacles.length - 1; i >= 0; i--) {
+      const obstacle = this.obstacles[i];
+      obstacle.x -= scrollSpeed * deltaTime;
+
+      // Remove obstacles that are off screen
+      if (obstacle.x + CONFIG.OBSTACLES.WIDTH < 0) {
+        this.container.removeChild(obstacle);
+        obstacle.destroy();
+        this.obstacles.splice(i, 1);
+        obstaclesPassed++;
+      }
+    }
+
+    // Update traveled distance
+    this.traveledDistance += scrollSpeed * deltaTime;
+
+    // Spawn new obstacle if needed
+    if (this.traveledDistance >= this.nextSpawnDistance) {
+      this.spawnObstacle();
+    }
+
+    return obstaclesPassed;
+  }
+
+  /**
+   * Spawn a new obstacle
+   */
+  spawnObstacle() {
+    const obstacle = this.createObstacle();
+    this.container.addChild(obstacle);
+    this.obstacles.push(obstacle);
+
+    // Calculate next spawn distance with gradual reduction
+    const minSpacing = CONFIG.OBSTACLES.MIN_SPACING;
+    const maxSpacing = CONFIG.OBSTACLES.MAX_SPACING;
+    const reductionRate = CONFIG.OBSTACLES.SPACING_REDUCTION_RATE;
+
+    // Reduce spacing over time but maintain minimum
+    this.currentSpacing = Math.max(
+      minSpacing,
+      this.currentSpacing * reductionRate
+    );
+
+    // Add some randomness
+    const randomOffset = (Math.random() - 0.5) * 50;
+    this.nextSpawnDistance = this.traveledDistance + this.currentSpacing + randomOffset;
+  }
+
+  /**
+   * Get all obstacle bounds for collision detection
+   * @returns {Array} Array of bounds objects
+   */
+  getObstacleBounds() {
+    return this.obstacles.map(obstacle => ({
+      x: obstacle.x,
+      y: obstacle.y,
+      width: CONFIG.OBSTACLES.WIDTH,
+      height: CONFIG.OBSTACLES.HEIGHT
+    }));
+  }
+
+  /**
+   * Reset obstacle manager
+   */
+  reset() {
+    // Remove all obstacles
+    for (const obstacle of this.obstacles) {
+      this.container.removeChild(obstacle);
+      obstacle.destroy();
+    }
+    
+    this.obstacles = [];
+    this.traveledDistance = 0;
+    this.nextSpawnDistance = CONFIG.OBSTACLES.MIN_SPACING;
+    this.currentSpacing = CONFIG.OBSTACLES.MIN_SPACING;
+  }
+
+  /**
+   * Clean up resources
+   */
+  destroy() {
+    this.reset();
+    if (this.container) {
+      this.container.destroy();
+      this.container = null;
+    }
+  }
+}
+
+export default ObstacleManager;

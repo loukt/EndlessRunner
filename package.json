@@ -1,0 +1,42 @@
+{
+  "name": "endless-runner",
+  "version": "0.1.0",
+  "description": "Cross-platform 2D endless runner game with PWA support",
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:perf": "playwright test",
+    "lint": "eslint src/ tests/",
+    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\""
+  },
+  "keywords": [
+    "game",
+    "endless-runner",
+    "pwa",
+    "pixi.js"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "pixi.js": "^7.4.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@vitejs/plugin-basic-ssl": "^1.0.2",
+    "eslint": "^8.55.0",
+    "jsdom": "^27.0.1",
+    "prettier": "^3.1.1",
+    "vite": "^5.0.8",
+    "vite-plugin-pwa": "^0.17.4",
+    "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

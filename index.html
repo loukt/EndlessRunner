@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Fast-paced endless runner game. Jump over obstacles and beat your high score!">
+  <meta name="theme-color" content="#1099bb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Endless Runner">
+  
+  <title>Endless Runner</title>
+  
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+  <link rel="manifest" href="/manifest.json">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #87CEEB;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    canvas {
+      display: block;
+      touch-action: none;
+    }
+    
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 24px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="loading">Loading...</div>
+  </div>
+  
+  <script type="module" src="/src/main.js"></script>
+  <script>
+    // Fallback error handler
+    window.addEventListener('error', (e) => {
+      const loading = document.getElementById('loading');
+      if (loading) {
+        loading.innerHTML = `<div style="color: #ff4444; padding: 20px; text-align: center;">
+          <h2>Error Loading Game</h2>
+          <p style="margin: 10px 0;">${e.message}</p>
+          <p style="font-size: 12px; margin-top: 10px;">${e.filename}:${e.lineno}</p>
+        </div>`;
+      }
+    });
+    
+    // Timeout fallback
+    setTimeout(() => {
+      const loading = document.getElementById('loading');
+      if (loading && loading.textContent === 'Loading...') {
+        loading.innerHTML = `<div style="color: #ffaa00; padding: 20px; text-align: center;">
+          <h2>Loading is taking longer than expected...</h2>
+          <p style="margin: 10px 0;">Check console (F12) for errors</p>
+        </div>`;
+      }
+    }, 5000);
+  </script>
+</body>
+</html>
