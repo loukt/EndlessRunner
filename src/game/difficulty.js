@@ -30,8 +30,8 @@ export class DifficultyManager {
    * @returns {number} Current difficulty level
    */
   calculateLevel() {
-    // Level increases every 100 points, capped at 10
-    return Math.min(10, Math.floor(this.score / 100) + 1);
+    // Level increases every 200 points, capped at 10 (slower progression)
+    return Math.min(10, Math.floor(this.score / 200) + 1);
   }
 
   /**
@@ -43,8 +43,9 @@ export class DifficultyManager {
     
     // Gradually reduce spacing based on level (10 levels)
     // Level 1: MAX_SPACING (700px)
-    // Level 10: MIN_SPACING (200px)
-    const spacingRange = MAX_SPACING - MIN_SPACING;
+    // Level 10: MIN_SPACING (300px) - Increased minimum for safety
+    const safeMinSpacing = 300; // Ensure always passable
+    const spacingRange = MAX_SPACING - safeMinSpacing;
     const levelProgress = (this.level - 1) / 9; // 0 to 1
     
     return MAX_SPACING - (spacingRange * levelProgress);
@@ -58,21 +59,22 @@ export class DifficultyManager {
     const level = this.level;
     
     // Define obstacle types with increasing complexity
+    // Heights reduced to ensure all obstacles are jumpable
     const obstacleTypes = [
       // Level 1-2: Only short obstacles
       { type: 'short', height: 30, width: 30, weight: level <= 2 ? 1 : 0.4 },
       
       // Level 3+: Medium obstacles
-      { type: 'medium', height: 50, width: 30, weight: level >= 3 ? 0.4 : 0 },
+      { type: 'medium', height: 45, width: 30, weight: level >= 3 ? 0.4 : 0 },
       
       // Level 5+: Tall obstacles
-      { type: 'tall', height: 70, width: 30, weight: level >= 5 ? 0.3 : 0 },
+      { type: 'tall', height: 60, width: 30, weight: level >= 5 ? 0.3 : 0 },
       
       // Level 7+: Wide obstacles (harder to judge timing)
-      { type: 'wide', height: 50, width: 50, weight: level >= 7 ? 0.2 : 0 },
+      { type: 'wide', height: 45, width: 50, weight: level >= 7 ? 0.2 : 0 },
       
-      // Level 9+: Extra tall (requires perfect timing)
-      { type: 'extra_tall', height: 90, width: 30, weight: level >= 9 ? 0.15 : 0 },
+      // Level 9+: Extra tall (requires good timing but still jumpable)
+      { type: 'extra_tall', height: 70, width: 30, weight: level >= 9 ? 0.15 : 0 },
     ];
 
     // Filter available types and select randomly based on weights
@@ -134,7 +136,8 @@ export class DifficultyManager {
    */
   shouldUsePattern() {
     // Higher levels can spawn patterns (multiple obstacles)
-    return this.level >= 6 && Math.random() < 0.2; // 20% chance at level 6+
+    // Only at level 8+ with 10% chance (reduced for safety)
+    return this.level >= 8 && Math.random() < 0.1;
   }
 
   /**
@@ -143,17 +146,17 @@ export class DifficultyManager {
    */
   getObstaclePattern() {
     const patterns = [
-      // Double obstacle
+      // Double obstacle (wide spacing to ensure passable)
       [
         { config: this.getObstacleConfig(), offsetX: 0 },
-        { config: this.getObstacleConfig(), offsetX: 150 }
+        { config: this.getObstacleConfig(), offsetX: 200 }
       ],
       
-      // Triple staggered
+      // Triple staggered (only short obstacles for safety)
       [
         { config: { type: 'short', height: 30, width: 30, color: 0x8B4513 }, offsetX: 0 },
-        { config: { type: 'short', height: 30, width: 30, color: 0x8B4513 }, offsetX: 120 },
-        { config: { type: 'short', height: 30, width: 30, color: 0x8B4513 }, offsetX: 240 }
+        { config: { type: 'short', height: 30, width: 30, color: 0x8B4513 }, offsetX: 150 },
+        { config: { type: 'short', height: 30, width: 30, color: 0x8B4513 }, offsetX: 300 }
       ]
     ];
 
@@ -166,8 +169,9 @@ export class DifficultyManager {
    */
   getSpawnVariance() {
     // Higher levels have less variance (more predictable but harder)
+    // Keep minimum at 50px to prevent too-tight spacing
     const maxVariance = 100 - (this.level * 5);
-    return (Math.random() - 0.5) * Math.max(20, maxVariance);
+    return (Math.random() - 0.5) * Math.max(50, maxVariance);
   }
 
   /**
