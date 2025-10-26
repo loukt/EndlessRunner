@@ -85,10 +85,15 @@ export class HUD {
    * Update score display
    * @param {number} score - Current score
    * @param {number} level - Current difficulty level (optional)
+   * @param {number} highScore - Personal best score (optional)
    */
-  updateScore(score, level = null) {
+  updateScore(score, level = null, highScore = null) {
     if (this.scoreText) {
-      this.scoreText.text = `Score: ${score}`;
+      let text = `Score: ${score}`;
+      if (highScore !== null && highScore > 0) {
+        text += ` (Best: ${highScore})`;
+      }
+      this.scoreText.text = text;
     }
     if (level !== null && this.levelText) {
       this.levelText.text = `Level: ${level}`;

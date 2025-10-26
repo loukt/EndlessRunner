@@ -21,6 +21,9 @@ import { GameSession } from './data/session.js';
 import { ParticleSystem } from './game/particles.js';
 import { CameraEffects } from './game/camera.js';
 import { DifficultyManager } from './game/difficulty.js';
+import { PlayerProfile } from './data/profile.js';
+import { AchievementManager } from './game/achievements.js';
+import { Celebration } from './ui/celebration.js';
 
 /**
  * Main application class
@@ -40,6 +43,9 @@ class Game {
     this.session = null;
     this.particles = null;
     this.camera = null;
+    this.profile = null;
+    this.achievementManager = null;
+    this.celebration = null;
     this.isRunning = false;
     this.isPaused = false;
     this.gameState = 'MENU'; // MENU, READY, PLAYING, GAME_OVER, PAUSED
@@ -114,47 +120,19 @@ class Game {
    */
   async loadProfile() {
     try {
-      // Try to load existing profile
-      let profile = await this.storage.load(CONFIG.STORAGE.STORE_NAMES.PROFILE, 'player');
+      // Initialize player profile with new ProfilePlayer class
+      this.profile = new PlayerProfile();
+      await this.profile.init(this.storage);
       
-      if (!profile) {
-        // Create new profile
-        profile = {
-          id: 'player',
-          highScore: 0,
-          totalCoins: 0,
-          gamesPlayed: 0,
-          totalDistance: 0,
-          soundEnabled: true,
-          musicEnabled: true,
-          selectedCosmetics: {},
-          firstPlayedAt: Date.now(),
-          lastPlayedAt: Date.now(),
-          currentStreak: 0,
-          bestStreak: 0,
-          statisticsVersion: 1
-        };
-        
-        await this.storage.save(CONFIG.STORAGE.STORE_NAMES.PROFILE, profile);
-        console.log('Created new player profile');
-      } else {
-        // Update last played time
-        profile.lastPlayedAt = Date.now();
-        await this.storage.save(CONFIG.STORAGE.STORE_NAMES.PROFILE, profile);
-        console.log('Loaded existing player profile');
-      }
-
-      this.profile = profile;
+      // Initialize achievement manager
+      this.achievementManager = new AchievementManager();
+      
+      console.log('Profile and achievements initialized');
+      console.log(`High Score: ${this.profile.highScore}`);
+      console.log(`Games Played: ${this.profile.gamesPlayed}`);
+      console.log(`Achievements: ${this.profile.achievements.length}`);
     } catch (error) {
       console.error('Failed to load profile:', error);
-      // Create minimal profile in memory
-      this.profile = {
-        id: 'player',
-        highScore: 0,
-        totalCoins: 0,
-        soundEnabled: true,
-        musicEnabled: true
-      };
     }
   }
 
@@ -205,6 +183,10 @@ class Game {
     // Create menu system (should be on top of HUD)
     this.menu = new Menu();
     this.menu.create(stage);
+
+    // Create celebration system (on top of everything)
+    this.celebration = new Celebration();
+    this.celebration.create(stage);
 
     // Create session tracker
     this.session = new GameSession();
@@ -297,7 +279,7 @@ class Game {
   /**
    * Game over
    */
-  gameOver() {
+  async gameOver() {
     this.gameState = 'GAME_OVER';
     this.scoring.stop();
     this.session.end();
@@ -322,32 +304,46 @@ class Game {
     
     // Update session score
     this.session.setScore(finalScore);
+    const sessionData = this.session.getData();
     
-    // Check for high score
-    const isNewHighScore = finalScore > this.profile.highScore;
-    if (isNewHighScore) {
-      this.profile.highScore = finalScore;
-      this.saveProfile();
+    // Record session in profile
+    const result = await this.profile.recordSession(sessionData);
+    
+    // Check for high score celebration
+    if (result.isNewHighScore) {
       console.log('New high score!', finalScore);
+      // Trigger celebration after a short delay
+      setTimeout(() => {
+        this.celebration.playNewHighScore(finalScore, result.previousBest);
+      }, 500);
+    }
+    
+    // Check for achievements
+    const profileStats = this.profile.getStats();
+    const newAchievements = this.achievementManager.checkAchievements(
+      sessionData,
+      profileStats,
+      this.profile.achievements
+    );
+    
+    // Unlock new achievements
+    for (const achievementId of newAchievements) {
+      await this.profile.unlockAchievement(achievementId);
+      const achievement = this.achievementManager.getAchievement(achievementId);
+      console.log(`Achievement unlocked: ${achievement.name}`);
+      
+      // Show achievement celebration after high score celebration
+      setTimeout(() => {
+        this.celebration.playAchievementUnlock(achievement);
+      }, result.isNewHighScore ? 3500 : 500);
     }
     
     // Show game over menu
-    this.menu.showGameOver(finalScore, isNewHighScore);
+    this.menu.showGameOver(finalScore, result.isNewHighScore);
     
     // Log session data
-    console.log('Game over. Session data:', this.session.getData());
-  }
-
-  /**
-   * Save player profile
-   */
-  async saveProfile() {
-    try {
-      this.profile.lastPlayedAt = Date.now();
-      await this.storage.save(CONFIG.STORAGE.STORE_NAMES.PROFILE, this.profile);
-    } catch (error) {
-      console.error('Failed to save profile:', error);
-    }
+    console.log('Game over. Session data:', sessionData);
+    console.log('Profile stats:', profileStats);
   }
 
   /**
@@ -450,9 +446,15 @@ class Game {
       // Check collisions
       this.checkCollisions();
 
-      // Update HUD with score and level indicator
+      // Update HUD with score, level, and high score
       const currentLevel = this.difficultyManager.level;
-      this.hud.updateScore(this.scoring.getScore(), currentLevel);
+      const highScore = this.profile ? this.profile.highScore : 0;
+      this.hud.updateScore(this.scoring.getScore(), currentLevel, highScore);
+    }
+
+    // Update celebration animation
+    if (this.celebration) {
+      this.celebration.update(deltaTime);
     }
 
     // Update particles (always, even when not playing for fade out)
