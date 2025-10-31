@@ -24,6 +24,8 @@ import { DifficultyManager } from './game/difficulty.js';
 import { PlayerProfile } from './data/profile.js';
 import { AchievementManager } from './game/achievements.js';
 import { Celebration } from './ui/celebration.js';
+import { StatisticsScreen } from './ui/statistics.js';
+import { SettingsScreen } from './ui/settings.js';
 
 /**
  * Main application class
@@ -46,6 +48,8 @@ class Game {
     this.profile = null;
     this.achievementManager = null;
     this.celebration = null;
+    this.statisticsScreen = null;
+    this.settingsScreen = null;
     this.isRunning = false;
     this.isPaused = false;
     this.gameState = 'MENU'; // MENU, READY, PLAYING, GAME_OVER, PAUSED
@@ -187,6 +191,36 @@ class Game {
     // Create celebration system (on top of everything)
     this.celebration = new Celebration();
     this.celebration.create(stage);
+
+    // Create statistics screen (on top of everything)
+    this.statisticsScreen = new StatisticsScreen();
+    this.statisticsScreen.create(stage);
+
+    // Create settings screen (on top of everything)
+    this.settingsScreen = new SettingsScreen();
+    this.settingsScreen.create(stage);
+
+    // Wire up menu callbacks
+    this.menu.onStatisticsClick = () => {
+      if (this.profile && this.achievementManager) {
+        const stats = this.profile.getStats();
+        this.statisticsScreen.show(stats, this.achievementManager, this.profile.achievements);
+      }
+    };
+
+    this.menu.onSettingsClick = () => {
+      this.settingsScreen.show();
+    };
+
+    // Wire up settings callback to audio
+    this.settingsScreen.onSettingChanged = (key, value) => {
+      if (key === 'soundEnabled' && this.audio) {
+        this.audio.soundEnabled = value;
+      } else if (key === 'musicEnabled' && this.audio) {
+        this.audio.musicEnabled = value;
+      }
+      // reducedMotion would be used by particle system and camera shake
+    };
 
     // Create session tracker
     this.session = new GameSession();

@@ -13,6 +13,10 @@ export class Menu {
     this.startScreen = null;
     this.gameOverScreen = null;
     this.pauseScreen = null;
+    this.statisticsButton = null;
+    this.settingsButton = null;
+    this.onStatisticsClick = null;
+    this.onSettingsClick = null;
   }
 
   /**
@@ -96,7 +100,51 @@ export class Menu {
     hint.y = CONFIG.CANVAS.HEIGHT / 2 + 100;
     this.startScreen.addChild(hint);
 
+    // Statistics button (bottom left)
+    this.statisticsButton = this.createMenuButton('📊 STATS', 100, CONFIG.CANVAS.HEIGHT - 50, 0x2196F3);
+    this.statisticsButton.interactive = true;
+    this.statisticsButton.buttonMode = true;
+    this.statisticsButton.on('pointerdown', () => {
+      if (this.onStatisticsClick) this.onStatisticsClick();
+    });
+    this.startScreen.addChild(this.statisticsButton);
+
+    // Settings button (bottom right)
+    this.settingsButton = this.createMenuButton('⚙️ SETTINGS', CONFIG.CANVAS.WIDTH - 100, CONFIG.CANVAS.HEIGHT - 50, 0x607D8B);
+    this.settingsButton.interactive = true;
+    this.settingsButton.buttonMode = true;
+    this.settingsButton.on('pointerdown', () => {
+      if (this.onSettingsClick) this.onSettingsClick();
+    });
+    this.startScreen.addChild(this.settingsButton);
+
     this.container.addChild(this.startScreen);
+  }
+
+  /**
+   * Create a menu button
+   */
+  createMenuButton(text, x, y, color) {
+    const button = new PIXI.Container();
+    button.x = x;
+    button.y = y;
+
+    const bg = new PIXI.Graphics();
+    bg.beginFill(color);
+    bg.drawRoundedRect(-80, -20, 160, 40, 10);
+    bg.endFill();
+    button.addChild(bg);
+
+    const label = new PIXI.Text(text, {
+      fontFamily: 'Arial',
+      fontSize: 18,
+      fontWeight: 'bold',
+      fill: 0xFFFFFF,
+    });
+    label.anchor.set(0.5);
+    button.addChild(label);
+
+    return button;
   }
 
   /**
