@@ -111,6 +111,7 @@ export class StatisticsScreen {
       `🏃 Total Distance: ${profileStats.totalDistance}m`,
       `⬆️ Total Jumps: ${profileStats.totalJumps}`,
       `🚧 Obstacles Passed: ${profileStats.totalObstacles}`,
+      `💰 Total Coins: ${profileStats.totalCoins}`,
       `⭐ Achievements: ${profileStats.achievementsUnlocked}`,
     ];
 

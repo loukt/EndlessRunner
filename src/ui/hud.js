@@ -12,6 +12,7 @@ export class HUD {
     this.container = null;
     this.scoreText = null;
     this.levelText = null;
+    this.coinText = null;
     this.gameOverText = null;
     this.instructionText = null;
   }
@@ -50,6 +51,20 @@ export class HUD {
     this.levelText.x = 20;
     this.levelText.y = 20;
     this.container.addChild(this.levelText);
+
+    // Coin counter (top right)
+    this.coinText = new PIXI.Text('💰 0', {
+      fontFamily: 'Arial',
+      fontSize: 24,
+      fill: 0xFFD700,
+      stroke: 0x000000,
+      strokeThickness: 3,
+      align: 'right'
+    });
+    this.coinText.anchor.set(1, 0);
+    this.coinText.x = CONFIG.CANVAS.WIDTH - 20;
+    this.coinText.y = 20;
+    this.container.addChild(this.coinText);
 
     // Instruction text (center)
     this.instructionText = new PIXI.Text('Click or Tap to Jump!', {
@@ -97,6 +112,16 @@ export class HUD {
     }
     if (level !== null && this.levelText) {
       this.levelText.text = `Level: ${level}`;
+    }
+  }
+
+  /**
+   * Update coin display
+   * @param {number} coins - Coins collected this run
+   */
+  updateCoins(coins) {
+    if (this.coinText) {
+      this.coinText.text = `💰 ${coins}`;
     }
   }
 

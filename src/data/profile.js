@@ -16,6 +16,7 @@ export class PlayerProfile {
     this.totalDistance = 0;
     this.totalJumps = 0;
     this.totalObstacles = 0;
+    this.totalCoins = 0;
     this.gamesPlayed = 0;
     this.achievements = [];
     this.createdAt = null;
@@ -44,6 +45,7 @@ export class PlayerProfile {
         this.totalDistance = saved.totalDistance || 0;
         this.totalJumps = saved.totalJumps || 0;
         this.totalObstacles = saved.totalObstacles || 0;
+        this.totalCoins = saved.totalCoins || 0;
         this.gamesPlayed = saved.gamesPlayed || 0;
         this.achievements = saved.achievements || [];
         this.createdAt = saved.createdAt;
@@ -72,6 +74,7 @@ export class PlayerProfile {
         totalDistance: this.totalDistance,
         totalJumps: this.totalJumps,
         totalObstacles: this.totalObstacles,
+        totalCoins: this.totalCoins,
         gamesPlayed: this.gamesPlayed,
         achievements: this.achievements,
         createdAt: this.createdAt,
@@ -110,6 +113,7 @@ export class PlayerProfile {
     this.totalDistance += sessionData.distance || 0;
     this.totalJumps += sessionData.jumps || 0;
     this.totalObstacles += sessionData.obstaclesPassed || 0;
+    this.totalCoins += sessionData.coinsCollected || 0;
     this.gamesPlayed += 1;
     this.lastPlayedAt = new Date().toISOString();
     
@@ -158,6 +162,7 @@ export class PlayerProfile {
       totalDistance: Math.floor(this.totalDistance),
       totalJumps: this.totalJumps,
       totalObstacles: this.totalObstacles,
+      totalCoins: this.totalCoins,
       gamesPlayed: this.gamesPlayed,
       achievementsUnlocked: this.achievements.length,
       averageScore: this.gamesPlayed > 0 ? Math.floor(this.totalDistance / this.gamesPlayed / 10) : 0
@@ -172,6 +177,7 @@ export class PlayerProfile {
     this.totalDistance = 0;
     this.totalJumps = 0;
     this.totalObstacles = 0;
+    this.totalCoins = 0;
     this.gamesPlayed = 0;
     this.achievements = [];
     this.createdAt = new Date().toISOString();

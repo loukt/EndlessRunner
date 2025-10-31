@@ -103,6 +103,34 @@ export class ParticleSystem {
   }
 
   /**
+   * Create coin collection sparkle particles
+   * @param {number} x - X position
+   * @param {number} y - Y position
+   */
+  createSparkles(x, y) {
+    const particleCount = 10;
+    
+    for (let i = 0; i < particleCount; i++) {
+      const particle = new PIXI.Graphics();
+      particle.beginFill(0xFFD700, 1.0); // Gold sparkle
+      particle.drawCircle(0, 0, Math.random() * 3 + 2);
+      particle.endFill();
+
+      particle.x = x;
+      particle.y = y;
+      const angle = (Math.PI * 2 * i) / particleCount;
+      const speed = Math.random() * 100 + 50;
+      particle.vx = Math.cos(angle) * speed;
+      particle.vy = Math.sin(angle) * speed;
+      particle.lifetime = 0.5;
+      particle.maxLifetime = 0.5;
+
+      this.container.addChild(particle);
+      this.particles.push(particle);
+    }
+  }
+
+  /**
    * Update all particles
    * @param {number} deltaTime - Time elapsed since last frame
    */

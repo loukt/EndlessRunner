@@ -187,8 +187,22 @@ export class Menu {
     });
     this.finalScoreText.anchor.set(0.5);
     this.finalScoreText.x = CONFIG.CANVAS.WIDTH / 2;
-    this.finalScoreText.y = CONFIG.CANVAS.HEIGHT / 2 - 20;
+    this.finalScoreText.y = CONFIG.CANVAS.HEIGHT / 2 - 50;
     this.gameOverScreen.addChild(this.finalScoreText);
+
+    // Coins collected text
+    this.coinsCollectedText = new PIXI.Text('💰 Coins: 0', {
+      fontFamily: 'Arial',
+      fontSize: 28,
+      fill: 0xFFD700,
+      stroke: 0x000000,
+      strokeThickness: 3,
+      align: 'center',
+    });
+    this.coinsCollectedText.anchor.set(0.5);
+    this.coinsCollectedText.x = CONFIG.CANVAS.WIDTH / 2;
+    this.coinsCollectedText.y = CONFIG.CANVAS.HEIGHT / 2;
+    this.gameOverScreen.addChild(this.coinsCollectedText);
 
     // High score text (will be shown if new high score)
     this.highScoreText = new PIXI.Text('NEW HIGH SCORE!', {
@@ -202,7 +216,7 @@ export class Menu {
     });
     this.highScoreText.anchor.set(0.5);
     this.highScoreText.x = CONFIG.CANVAS.WIDTH / 2;
-    this.highScoreText.y = CONFIG.CANVAS.HEIGHT / 2 + 30;
+    this.highScoreText.y = CONFIG.CANVAS.HEIGHT / 2 + 50;
     this.highScoreText.visible = false;
     this.gameOverScreen.addChild(this.highScoreText);
 
@@ -270,14 +284,16 @@ export class Menu {
    * Show the game over screen with score
    * @param {number} score - Final score
    * @param {boolean} isNewHighScore - Whether this is a new high score
+   * @param {number} coinsCollected - Coins collected this run
    */
-  showGameOver(score, isNewHighScore = false) {
+  showGameOver(score, isNewHighScore = false, coinsCollected = 0) {
     this.container.visible = true;
     this.startScreen.visible = false;
     this.gameOverScreen.visible = true;
     this.pauseScreen.visible = false;
 
     this.finalScoreText.text = `Score: ${score}`;
+    this.coinsCollectedText.text = `💰 Coins: ${coinsCollected}`;
     this.highScoreText.visible = isNewHighScore;
   }
 

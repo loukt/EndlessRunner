@@ -26,6 +26,7 @@ import { AchievementManager } from './game/achievements.js';
 import { Celebration } from './ui/celebration.js';
 import { StatisticsScreen } from './ui/statistics.js';
 import { SettingsScreen } from './ui/settings.js';
+import { CoinManager } from './game/coin.js';
 
 /**
  * Main application class
@@ -50,6 +51,8 @@ class Game {
     this.celebration = null;
     this.statisticsScreen = null;
     this.settingsScreen = null;
+    this.coinManager = null;
+    this.coinsCollectedThisRun = 0;
     this.isRunning = false;
     this.isPaused = false;
     this.gameState = 'MENU'; // MENU, READY, PLAYING, GAME_OVER, PAUSED
@@ -170,6 +173,10 @@ class Game {
     this.obstacleManager = new ObstacleManager(this.difficultyManager);
     this.obstacleManager.create(stage, pixiRenderer);
 
+    // Create coin manager
+    this.coinManager = new CoinManager();
+    this.coinManager.create(stage, pixiRenderer);
+
     // Create scoring
     this.scoring = new Scoring();
 
@@ -287,8 +294,10 @@ class Game {
     this.gameState = 'PLAYING';
     this.session.start();
     this.scoring.start();
+    this.coinsCollectedThisRun = 0;
     this.menu.hide();
     this.hud.showGameStarted();
+    this.hud.updateCoins(0);
     console.log('Game started! Session:', this.session.sessionId);
   }
 
@@ -298,6 +307,8 @@ class Game {
   restartGame() {
     this.player.reset();
     this.obstacleManager.reset();
+    this.coinManager.reset();
+    this.coinsCollectedThisRun = 0;
     this.difficultyManager.reset();
     this.scoring.reset();
     this.hud.reset();
@@ -336,9 +347,10 @@ class Game {
     
     const finalScore = this.scoring.getScore();
     
-    // Update session score
+    // Update session score and coins
     this.session.setScore(finalScore);
     const sessionData = this.session.getData();
+    sessionData.coinsCollected = this.coinsCollectedThisRun;
     
     // Record session in profile
     const result = await this.profile.recordSession(sessionData);
@@ -373,7 +385,7 @@ class Game {
     }
     
     // Show game over menu
-    this.menu.showGameOver(finalScore, result.isNewHighScore);
+    this.menu.showGameOver(finalScore, result.isNewHighScore, this.coinsCollectedThisRun);
     
     // Log session data
     console.log('Game over. Session data:', sessionData);
@@ -474,6 +486,9 @@ class Game {
         this.session.incrementObstacles();
       }
 
+      // Update coins
+      this.coinManager.update(deltaTime, this.scrollSpeed, true);
+
       // Update scoring
       this.scoring.update(deltaTime, this.scrollSpeed);
 
@@ -484,6 +499,7 @@ class Game {
       const currentLevel = this.difficultyManager.level;
       const highScore = this.profile ? this.profile.highScore : 0;
       this.hud.updateScore(this.scoring.getScore(), currentLevel, highScore);
+      this.hud.updateCoins(this.coinsCollectedThisRun);
     }
 
     // Update celebration animation
@@ -515,12 +531,32 @@ class Game {
     if (!this.player.isAlive) return;
 
     const playerBounds = this.player.getBounds();
+    
+    // Check obstacle collisions
     const obstacles = this.obstacleManager.getObstacleBounds();
-
     for (const obstacle of obstacles) {
       if (Physics.checkCollision(playerBounds, obstacle)) {
         this.gameOver();
         break;
+      }
+    }
+
+    // Check coin collisions
+    const coinsCollected = this.coinManager.checkCollisions(playerBounds);
+    if (coinsCollected > 0) {
+      this.coinsCollectedThisRun += coinsCollected;
+      
+      // Play coin collection sound
+      if (this.audio) {
+        this.audio.playSound('coin');
+      }
+      
+      // Create sparkle particles at player position
+      if (this.particles) {
+        this.particles.createSparkles(
+          playerBounds.x + playerBounds.width / 2,
+          playerBounds.y + playerBounds.height / 2
+        );
       }
     }
   }
