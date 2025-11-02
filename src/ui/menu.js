@@ -15,8 +15,10 @@ export class Menu {
     this.pauseScreen = null;
     this.statisticsButton = null;
     this.settingsButton = null;
+    this.shopButton = null;
     this.onStatisticsClick = null;
     this.onSettingsClick = null;
+    this.onShopClick = null;
   }
 
   /**
@@ -99,6 +101,15 @@ export class Menu {
     hint.x = CONFIG.CANVAS.WIDTH / 2;
     hint.y = CONFIG.CANVAS.HEIGHT / 2 + 100;
     this.startScreen.addChild(hint);
+
+    // Shop button (center bottom, above other buttons)
+    this.shopButton = this.createMenuButton('🛍️ SHOP', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT - 110, 0x9C27B0);
+    this.shopButton.interactive = true;
+    this.shopButton.buttonMode = true;
+    this.shopButton.on('pointerdown', () => {
+      if (this.onShopClick) this.onShopClick();
+    });
+    this.startScreen.addChild(this.shopButton);
 
     // Statistics button (bottom left)
     this.statisticsButton = this.createMenuButton('📊 STATS', 100, CONFIG.CANVAS.HEIGHT - 50, 0x2196F3);

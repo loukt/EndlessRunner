@@ -27,6 +27,7 @@ import { Celebration } from './ui/celebration.js';
 import { StatisticsScreen } from './ui/statistics.js';
 import { SettingsScreen } from './ui/settings.js';
 import { CoinManager } from './game/coin.js';
+import { Shop } from './ui/shop.js';
 
 /**
  * Main application class
@@ -52,6 +53,7 @@ class Game {
     this.statisticsScreen = null;
     this.settingsScreen = null;
     this.coinManager = null;
+    this.shop = null;
     this.coinsCollectedThisRun = 0;
     this.isRunning = false;
     this.isPaused = false;
@@ -134,10 +136,20 @@ class Game {
       // Initialize achievement manager
       this.achievementManager = new AchievementManager();
       
+      // Apply selected cosmetic if available
+      if (this.profile.selectedCosmetic && this.player) {
+        const { getCosmeticById } = await import('./data/cosmetics.js');
+        const cosmetic = getCosmeticById(this.profile.selectedCosmetic);
+        if (cosmetic) {
+          this.applyCosmetic(cosmetic);
+        }
+      }
+      
       console.log('Profile and achievements initialized');
       console.log(`High Score: ${this.profile.highScore}`);
       console.log(`Games Played: ${this.profile.gamesPlayed}`);
       console.log(`Achievements: ${this.profile.achievements.length}`);
+      console.log(`Selected Cosmetic: ${this.profile.selectedCosmetic}`);
     } catch (error) {
       console.error('Failed to load profile:', error);
     }
@@ -207,6 +219,10 @@ class Game {
     this.settingsScreen = new SettingsScreen();
     this.settingsScreen.create(stage);
 
+    // Create shop screen (on top of everything)
+    this.shop = new Shop();
+    this.shop.create(stage);
+
     // Wire up menu callbacks
     this.menu.onStatisticsClick = () => {
       if (this.profile && this.achievementManager) {
@@ -219,6 +235,12 @@ class Game {
       this.settingsScreen.show();
     };
 
+    this.menu.onShopClick = () => {
+      if (this.profile) {
+        this.shop.show(this.profile);
+      }
+    };
+
     // Wire up settings callback to audio
     this.settingsScreen.onSettingChanged = (key, value) => {
       if (key === 'soundEnabled' && this.audio) {
@@ -227,6 +249,21 @@ class Game {
         this.audio.musicEnabled = value;
       }
       // reducedMotion would be used by particle system and camera shake
+    };
+
+    // Wire up shop callbacks
+    this.shop.onPurchase = (cosmetic) => {
+      console.log('Purchased:', cosmetic.name);
+      // Play purchase sound if available
+      if (this.audio) {
+        this.audio.playSound('coin');
+      }
+    };
+
+    this.shop.onSelect = (cosmetic) => {
+      console.log('Selected:', cosmetic.name);
+      // Apply cosmetic to player
+      this.applyCosmetic(cosmetic);
     };
 
     // Create session tracker
@@ -662,6 +699,17 @@ class Game {
     }
 
     console.log('Game destroyed');
+  }
+
+  /**
+   * Apply cosmetic to player
+   * @param {Object} cosmetic - Cosmetic item with colors
+   */
+  applyCosmetic(cosmetic) {
+    if (this.player && cosmetic && cosmetic.colors) {
+      this.player.applyColors(cosmetic.colors);
+      console.log('Applied cosmetic:', cosmetic.name);
+    }
   }
 }
 

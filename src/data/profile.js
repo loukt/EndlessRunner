@@ -19,6 +19,8 @@ export class PlayerProfile {
     this.totalCoins = 0;
     this.gamesPlayed = 0;
     this.achievements = [];
+    this.ownedCosmetics = ['businessman-default']; // Default skin is always owned
+    this.selectedCosmetic = 'businessman-default';
     this.createdAt = null;
     this.lastPlayedAt = null;
   }
@@ -48,6 +50,8 @@ export class PlayerProfile {
         this.totalCoins = saved.totalCoins || 0;
         this.gamesPlayed = saved.gamesPlayed || 0;
         this.achievements = saved.achievements || [];
+        this.ownedCosmetics = saved.ownedCosmetics || ['businessman-default'];
+        this.selectedCosmetic = saved.selectedCosmetic || 'businessman-default';
         this.createdAt = saved.createdAt;
         this.lastPlayedAt = saved.lastPlayedAt;
         
@@ -77,6 +81,8 @@ export class PlayerProfile {
         totalCoins: this.totalCoins,
         gamesPlayed: this.gamesPlayed,
         achievements: this.achievements,
+        ownedCosmetics: this.ownedCosmetics,
+        selectedCosmetic: this.selectedCosmetic,
         createdAt: this.createdAt,
         lastPlayedAt: this.lastPlayedAt,
         updatedAt: new Date().toISOString()
@@ -170,6 +176,62 @@ export class PlayerProfile {
   }
 
   /**
+   * Purchase a cosmetic item
+   * @param {string} cosmeticId - Cosmetic identifier
+   * @param {number} price - Cost in coins
+   * @returns {boolean} True if purchase successful
+   */
+  async purchaseCosmetic(cosmeticId, price) {
+    // Check if already owned
+    if (this.ownedCosmetics.includes(cosmeticId)) {
+      console.log('Cosmetic already owned:', cosmeticId);
+      return false;
+    }
+
+    // Check if enough coins
+    if (this.totalCoins < price) {
+      console.log('Not enough coins. Have:', this.totalCoins, 'Need:', price);
+      return false;
+    }
+
+    // Deduct coins and add cosmetic
+    this.totalCoins -= price;
+    this.ownedCosmetics.push(cosmeticId);
+    await this.save();
+    
+    console.log('Cosmetic purchased:', cosmeticId, 'Coins remaining:', this.totalCoins);
+    return true;
+  }
+
+  /**
+   * Select a cosmetic to use
+   * @param {string} cosmeticId - Cosmetic identifier
+   * @returns {boolean} True if selection successful
+   */
+  async selectCosmetic(cosmeticId) {
+    // Check if owned
+    if (!this.ownedCosmetics.includes(cosmeticId)) {
+      console.log('Cosmetic not owned:', cosmeticId);
+      return false;
+    }
+
+    this.selectedCosmetic = cosmeticId;
+    await this.save();
+    
+    console.log('Cosmetic selected:', cosmeticId);
+    return true;
+  }
+
+  /**
+   * Check if cosmetic is owned
+   * @param {string} cosmeticId - Cosmetic identifier
+   * @returns {boolean} True if owned
+   */
+  ownsCosmetic(cosmeticId) {
+    return this.ownedCosmetics.includes(cosmeticId);
+  }
+
+  /**
    * Reset profile (for testing or user request)
    */
   async reset() {
@@ -180,6 +242,8 @@ export class PlayerProfile {
     this.totalCoins = 0;
     this.gamesPlayed = 0;
     this.achievements = [];
+    this.ownedCosmetics = ['businessman-default'];
+    this.selectedCosmetic = 'businessman-default';
     this.createdAt = new Date().toISOString();
     this.lastPlayedAt = null;
     await this.save();
