@@ -19,12 +19,13 @@ export class Player {
     this.renderer = null;
     this.stage = null;
     this.colors = {
-      suit: 0x1A1A2E,
-      tie: 0xCC0000,
-      shirt: 0xFFFFFF,
-      skin: 0xFFDBB5,
-      briefcase: 0x8B4513
+      fur: 0xD9A05B,
+      patch: 0x8B5E3C,
+      belly: 0xF5D7B2,
+      collar: 0xCC3344,
+      eyes: 0x2E2E2E
     };
+    this.collisionEffect = null;
   }
 
   /**
@@ -39,7 +40,7 @@ export class Player {
   }
 
   /**
-   * Create businessman character with current colors
+  * Create cat character with current colors
    */
   createCharacter() {
     // Remove old sprite if it exists
@@ -53,11 +54,13 @@ export class Player {
       this.createSpriteGraphics();
       this.sprite.x = oldX;
       this.sprite.y = oldY;
+      this.sprite.tint = 0xFFFFFF;
     } else {
       // First time creation
       this.createSpriteGraphics();
       this.sprite.x = CONFIG.PLAYER.START_X;
       this.sprite.y = CONFIG.PHYSICS.GROUND_Y - 60;
+      this.sprite.tint = 0xFFFFFF;
     }
   }
 
@@ -65,54 +68,65 @@ export class Player {
    * Create the sprite graphics
    */
   createSpriteGraphics() {
-    // Create businessman sprite using graphics
+    // Create cat sprite using graphics
     const graphics = new PIXI.Graphics();
-    
-    // Draw businessman character
-    // Head (circle with skin tone)
-    graphics.beginFill(this.colors.skin); // Skin tone
-    graphics.drawCircle(20, 8, 8); // Head
+
+    // Body
+    graphics.beginFill(this.colors.fur);
+    graphics.drawEllipse(20, 34, 14, 16);
     graphics.endFill();
-    
-    // Suit jacket
-    graphics.beginFill(this.colors.suit); // Suit color
-    graphics.drawRect(12, 16, 16, 22); // Torso
+
+    // Belly
+    graphics.beginFill(this.colors.belly);
+    graphics.drawEllipse(20, 38, 8, 10);
     graphics.endFill();
-    
-    // White shirt/collar
-    graphics.beginFill(this.colors.shirt);
-    graphics.drawRect(16, 18, 8, 4); // Collar
+
+    // Head
+    graphics.beginFill(this.colors.fur);
+    graphics.drawCircle(20, 14, 9);
     graphics.endFill();
-    
-    // Tie
-    graphics.beginFill(this.colors.tie);
-    graphics.drawRect(18, 22, 4, 10); // Tie
+
+    // Ears
+    graphics.beginFill(this.colors.fur);
+    graphics.drawPolygon([12, 8, 16, 2, 18, 10]);
+    graphics.drawPolygon([22, 10, 24, 2, 28, 8]);
     graphics.endFill();
-    
-    // Arms (running pose - one forward, one back)
-    graphics.beginFill(this.colors.suit);
-    graphics.drawRect(8, 20, 4, 12); // Left arm (back)
-    graphics.drawRect(28, 22, 4, 10); // Right arm (forward)
+
+    // Face patch/stripe
+    graphics.beginFill(this.colors.patch);
+    graphics.drawEllipse(16, 14, 3, 4);
     graphics.endFill();
-    
-    // Pants (dark gray)
-    graphics.beginFill(0x333333);
-    graphics.drawRect(12, 38, 7, 22); // Left leg
-    graphics.drawRect(21, 38, 7, 22); // Right leg
+
+    // Eyes
+    graphics.beginFill(this.colors.eyes);
+    graphics.drawCircle(17, 14, 1.5);
+    graphics.drawCircle(23, 14, 1.5);
     graphics.endFill();
-    
-    // Shoes (black)
-    graphics.beginFill(0x000000);
-    graphics.drawRect(10, 58, 9, 4); // Left shoe
-    graphics.drawRect(21, 58, 9, 4); // Right shoe
+
+    // Collar
+    graphics.beginFill(this.colors.collar);
+    graphics.drawRect(13, 20, 14, 3);
     graphics.endFill();
-    
-    // Briefcase (held in hand)
-    graphics.beginFill(this.colors.briefcase);
-    graphics.drawRect(28, 32, 8, 6);
+
+    // Legs and paws
+    graphics.beginFill(this.colors.fur);
+    graphics.drawRect(12, 46, 5, 10);
+    graphics.drawRect(23, 46, 5, 10);
     graphics.endFill();
-    graphics.lineStyle(1, this.colors.briefcase * 0.8);
-    graphics.drawRect(28, 32, 8, 6);
+    graphics.beginFill(0x2B2B2B);
+    graphics.drawRect(11, 56, 7, 4);
+    graphics.drawRect(22, 56, 7, 4);
+    graphics.endFill();
+
+    // Tail
+    graphics.beginFill(this.colors.fur);
+    graphics.drawRoundedRect(30, 32, 8, 16, 4);
+    graphics.endFill();
+
+    // Stripe
+    graphics.beginFill(this.colors.patch);
+    graphics.drawRect(12, 30, 16, 3);
+    graphics.endFill();
 
     // Create sprite from graphics (PixiJS v7 API)
     const texture = this.renderer.generateTexture(graphics);
@@ -124,7 +138,7 @@ export class Player {
 
   /**
    * Apply new colors to the character
-   * @param {Object} colors - Color scheme {suit, tie, shirt, skin, briefcase}
+   * @param {Object} colors - Color scheme {fur, patch, belly, collar, eyes}
    */
   applyColors(colors) {
     if (colors) {
@@ -221,13 +235,12 @@ export class Player {
 
   /**
    * Kill the player (game over)
+   * @param {string} effectType - Collision effect type
    */
-  die() {
+  die(effectType = null) {
     this.isAlive = false;
     this.isJumpPressed = false;
-    if (this.sprite) {
-      this.sprite.tint = 0xFF0000; // Turn red
-    }
+    this.applyCollisionEffect(effectType);
   }
 
   /**
@@ -238,11 +251,32 @@ export class Player {
     this.velocityY = 0;
     this.isJumping = false;
     this.isJumpPressed = false;
+    this.collisionEffect = null;
     
     if (this.sprite) {
       this.sprite.y = CONFIG.PHYSICS.GROUND_Y - CONFIG.PLAYER.HEIGHT;
       this.sprite.tint = 0xFFFFFF; // Reset color
     }
+  }
+
+  /**
+   * Apply a visual effect when the cat collides
+   * @param {string|null} effectType - Effect key
+   */
+  applyCollisionEffect(effectType) {
+    if (!this.sprite) return;
+    this.collisionEffect = effectType;
+
+    const tints = {
+      wet: 0x6EC6FF,
+      filthy: 0x8B5A2B,
+      tangled: 0xB57CFF,
+      startled: 0xFFDD55,
+      default: 0xFF6B6B
+    };
+
+    const tint = tints[effectType] || tints.default;
+    this.sprite.tint = tint;
   }
 
   /**

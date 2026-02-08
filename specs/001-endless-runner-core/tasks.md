@@ -46,20 +46,20 @@
 
 **⚠️ CRITICAL**: These tasks MUST be complete before any user story implementation
 
-- [ ] T018 Create src/engine/renderer.js - Initialize PixiJS Application with responsive canvas
-- [ ] T019 Create src/engine/input.js - Unified touch/click input handler with tap detection
-- [ ] T020 Create src/engine/physics.js - Gravity system and collision detection (AABB)
-- [ ] T021 Create src/engine/audio.js - Sound effect and music playback manager with Web Audio API
-- [ ] T022 Create src/data/storage.js - Storage abstraction layer (IndexedDB + localStorage fallback)
-- [ ] T023 [P] Create tests/unit/engine/renderer.test.js - Test canvas initialization and resize
-- [ ] T024 [P] Create tests/unit/engine/input.test.js - Test touch/click event handling
-- [ ] T025 [P] Create tests/unit/engine/physics.test.js - Test gravity and collision detection
-- [ ] T026 [P] Create tests/unit/data/storage.test.js - Test IndexedDB operations and fallback
-- [ ] T027 Implement IndexedDB schema in src/data/storage.js per contracts/storage-schema.json
-- [ ] T028 Create src/data/migrations.js - Database version management and schema migrations
-- [ ] T029 Create src/main.js - Application entry point with renderer initialization
-- [ ] T030 [P] Create tests/performance/fps.test.js - Playwright test measuring sustained 60 FPS
-- [ ] T031 [P] Create tests/performance/memory.test.js - Playwright test verifying <150MB memory usage
+- [X] T018 Create src/engine/renderer.js - Initialize PixiJS Application with responsive canvas
+- [X] T019 Create src/engine/input.js - Unified touch/click input handler with tap detection
+- [X] T020 Create src/engine/physics.js - Gravity system and collision detection (AABB)
+- [X] T021 Create src/engine/audio.js - Sound effect and music playback manager with Web Audio API
+- [X] T022 Create src/data/storage.js - Storage abstraction layer (IndexedDB + localStorage fallback)
+- [X] T023 [P] Create tests/unit/engine/renderer.test.js - Test canvas initialization and resize
+- [X] T024 [P] Create tests/unit/engine/input.test.js - Test touch/click event handling
+- [X] T025 [P] Create tests/unit/engine/physics.test.js - Test gravity and collision detection
+- [X] T026 [P] Create tests/unit/data/storage.test.js - Test IndexedDB operations and fallback
+- [X] T027 Implement IndexedDB schema in src/data/storage.js per contracts/storage-schema.json
+- [X] T028 Create src/data/migrations.js - Database version management and schema migrations
+- [X] T029 Create src/main.js - Application entry point with renderer initialization
+- [X] T030 [P] Create tests/performance/fps.test.js - Playwright test measuring sustained 60 FPS
+- [X] T031 [P] Create tests/performance/memory.test.js - Playwright test verifying <150MB memory usage
 - [ ] T032 Verify all foundational tests pass with `npm test`
 - [ ] T033 Verify performance benchmarks meet targets: `npm run test:perf`
 
@@ -75,27 +75,27 @@
 
 ### Implementation for User Story 1
 
-- [ ] T034 [P] [US1] Create src/game/player.js - Player sprite with jump physics and animation states
-- [ ] T035 [P] [US1] Create src/game/obstacle.js - Obstacle factory with position and collision bounds
-- [ ] T036 [P] [US1] Create src/game/scoring.js - Distance-based score calculation (game units)
-- [ ] T037 [P] [US1] Create src/game/difficulty.js - Progressive obstacle spacing algorithm (500px → 200px)
-- [ ] T038 [P] [US1] Create src/ui/hud.js - In-game HUD displaying current score
-- [ ] T039 [P] [US1] Create src/ui/menu.js - Game over screen with score and "Play Again" button
-- [ ] T040 [US1] Create src/data/session.js - GameSession entity management per data-model.md
-- [ ] T041 [US1] Implement game loop in src/main.js - Update player, obstacles, collision, score
-- [ ] T042 [US1] Add obstacle generation system ensuring safe zones (guaranteed passable patterns)
-- [ ] T043 [US1] Implement collision detection between player and obstacles using physics.js
-- [ ] T044 [US1] Add game over trigger on collision with session finalization
-- [ ] T045 [US1] Implement "Play Again" functionality with session reset
-- [ ] T046 [US1] Add placeholder sprites for player and obstacles (colored rectangles)
-- [ ] T047 [US1] Integrate audio.js for jump sound effect and collision sound
+- [X] T034 [P] [US1] Create src/game/player.js - Player sprite with jump physics and animation states
+- [X] T035 [P] [US1] Create src/game/obstacle.js - Obstacle factory with position and collision bounds
+- [X] T036 [P] [US1] Create src/game/scoring.js - Distance-based score calculation (game units)
+- [X] T037 [P] [US1] Create src/game/difficulty.js - Progressive obstacle spacing algorithm (500px → 200px)
+- [X] T038 [P] [US1] Create src/ui/hud.js - In-game HUD displaying current score
+- [X] T039 [P] [US1] Create src/ui/menu.js - Game over screen with score and "Play Again" button
+- [X] T040 [US1] Create src/data/session.js - GameSession entity management per data-model.md
+- [X] T041 [US1] Implement game loop in src/main.js - Update player, obstacles, collision, score
+- [X] T042 [US1] Add obstacle generation system ensuring safe zones (guaranteed passable patterns)
+- [X] T043 [US1] Implement collision detection between player and obstacles using physics.js
+- [X] T044 [US1] Add game over trigger on collision with session finalization
+- [X] T045 [US1] Implement "Play Again" functionality with session reset
+- [X] T046 [US1] Add placeholder sprites for player and obstacles (colored rectangles)
+- [X] T047 [US1] Integrate audio.js for jump sound effect and collision sound
 - [ ] T048 [P] [US1] Create tests/unit/game/player.test.js - Test jump mechanics and airborne detection
 - [ ] T049 [P] [US1] Create tests/unit/game/obstacle.test.js - Test obstacle generation and safe zones
 - [ ] T050 [P] [US1] Create tests/unit/game/difficulty.test.js - Test spacing reduction algorithm
 - [ ] T051 [P] [US1] Create tests/integration/gameplay.test.js - Full game loop test (start → play → collision → game over)
-- [ ] T052 [US1] Prevent double jump by ignoring taps while player airborne (FR-003a)
-- [ ] T053 [US1] Add pause/resume functionality when app goes to background (FR-022)
-- [ ] T054 [US1] Implement responsive canvas scaling for different screen sizes (FR-023)
+- [X] T052 [US1] Prevent double jump by ignoring taps while player airborne (FR-003a)
+- [X] T053 [US1] Add pause/resume functionality when app goes to background (FR-022)
+- [X] T054 [US1] Implement responsive canvas scaling for different screen sizes (FR-023)
 - [ ] T055 [US1] Manual test on Chrome, Firefox, Safari for cross-browser compatibility
 - [ ] T056 [US1] Manual test on iOS Safari and Android Chrome for mobile compatibility
 - [ ] T057 [US1] Run performance tests - verify 60 FPS sustained during gameplay
@@ -113,22 +113,22 @@
 
 ### Implementation for User Story 2
 
-- [ ] T059 [P] [US2] Create src/data/profile.js - PlayerProfile entity with highScore, achievements per data-model.md
-- [ ] T060 [P] [US2] Create src/game/achievements.js - Achievement definitions and unlock logic
-- [ ] T061 [P] [US2] Create src/ui/achievements.js - Achievement badge display components
-- [ ] T062 [P] [US2] Create src/ui/celebration.js - "NEW BEST!" animation and particle effects
-- [ ] T063 [US2] Implement PlayerProfile persistence in storage.js using IndexedDB
-- [ ] T064 [US2] Add high score comparison logic in scoring.js
-- [ ] T065 [US2] Display personal best score on HUD during gameplay
-- [ ] T066 [US2] Trigger celebration animation when score exceeds personal best
-- [ ] T067 [US2] Update game over screen to show "New Record!" badge
-- [ ] T068 [US2] Implement milestone achievements (100, 500, 1000, 5000 points)
-- [ ] T069 [US2] Display earned achievements on game over screen
-- [ ] T070 [US2] Add totalDistance, totalJumps, gamesPlayed tracking to PlayerProfile
-- [ ] T071 [US2] Create statistics screen showing lifetime stats from profile
-- [ ] T072 [P] [US2] Create tests/unit/data/profile.test.js - Test profile persistence and validation
-- [ ] T073 [P] [US2] Create tests/unit/game/achievements.test.js - Test milestone unlock logic
-- [ ] T074 [P] [US2] Create tests/integration/score-progression.test.js - Test high score flow end-to-end
+- [X] T059 [P] [US2] Create src/data/profile.js - PlayerProfile entity with highScore, achievements per data-model.md
+- [X] T060 [P] [US2] Create src/game/achievements.js - Achievement definitions and unlock logic
+- [X] T061 [P] [US2] Create src/ui/achievements.js - Achievement badge display components
+- [X] T062 [P] [US2] Create src/ui/celebration.js - "NEW BEST!" animation and particle effects
+- [X] T063 [US2] Implement PlayerProfile persistence in storage.js using IndexedDB
+- [X] T064 [US2] Add high score comparison logic in scoring.js
+- [X] T065 [US2] Display personal best score on HUD during gameplay
+- [X] T066 [US2] Trigger celebration animation when score exceeds personal best
+- [X] T067 [US2] Update game over screen to show "New Record!" badge
+- [X] T068 [US2] Implement milestone achievements (100, 500, 1000, 5000 points)
+- [X] T069 [US2] Display earned achievements on game over screen
+- [X] T070 [US2] Add totalDistance, totalJumps, gamesPlayed tracking to PlayerProfile
+- [X] T071 [US2] Create statistics screen showing lifetime stats from profile
+- [X] T072 [P] [US2] Create tests/unit/data/profile.test.js - Test profile persistence and validation
+- [X] T073 [P] [US2] Create tests/unit/game/achievements.test.js - Test milestone unlock logic
+- [X] T074 [P] [US2] Create tests/integration/score-progression.test.js - Test high score flow end-to-end
 - [ ] T075 [US2] Verify high score persists across app restarts (close and reopen test)
 - [ ] T076 [US2] Test achievement unlock notifications appear correctly
 - [ ] T077 [US2] Verify celebration animation plays on new record
@@ -145,24 +145,24 @@
 
 ### Implementation for User Story 3
 
-- [ ] T078 [P] [US3] Create src/game/coin.js - Collectible coin sprite with collection detection
-- [ ] T079 [P] [US3] Create src/data/cosmetics.js - CosmeticItem catalog per data-model.md
-- [ ] T080 [P] [US3] Create src/ui/shop.js - Shop interface with item grid and purchase buttons
+- [X] T078 [P] [US3] Create src/game/coin.js - Collectible coin sprite with collection detection
+- [X] T079 [P] [US3] Create src/data/cosmetics.js - CosmeticItem catalog per data-model.md
+- [X] T080 [P] [US3] Create src/ui/shop.js - Shop interface with item grid and purchase buttons
 - [ ] T081 [P] [US3] Create src/iap/provider.js - Payment provider abstraction interface
 - [ ] T082 [P] [US3] Create src/iap/stripe.js - Stripe web payment integration
 - [ ] T083 [P] [US3] Create src/iap/apple.js - Apple IAP wrapper (StoreKit)
 - [ ] T084 [P] [US3] Create src/iap/google.js - Google Play Billing wrapper
-- [ ] T085 [US3] Add coin spawning system in obstacle generation (random positions between obstacles)
-- [ ] T086 [US3] Implement coin collection detection in game loop
-- [ ] T087 [US3] Add coin counter to HUD showing current run collection
-- [ ] T088 [US3] Update PlayerProfile with totalCoins and lifetimeCoins fields
-- [ ] T089 [US3] Display total coins on game over screen
-- [ ] T090 [US3] Create shop screen accessible from main menu
-- [ ] T091 [US3] Load cosmetic items from cosmetics.js and display with prices
-- [ ] T092 [US3] Implement coin-based purchase logic with balance validation
-- [ ] T093 [US3] Add selectedSkin field to PlayerProfile and skin selection UI
-- [ ] T094 [US3] Apply selected skin sprite to player character
-- [ ] T095 [US3] Persist cosmetic unlock states in IndexedDB
+- [X] T085 [US3] Add coin spawning system in obstacle generation (random positions between obstacles)
+- [X] T086 [US3] Implement coin collection detection in game loop
+- [X] T087 [US3] Add coin counter to HUD showing current run collection
+- [X] T088 [US3] Update PlayerProfile with totalCoins and lifetimeCoins fields
+- [X] T089 [US3] Display total coins on game over screen
+- [X] T090 [US3] Create shop screen accessible from main menu
+- [X] T091 [US3] Load cosmetic items from cosmetics.js and display with prices
+- [X] T092 [US3] Implement coin-based purchase logic with balance validation
+- [X] T093 [US3] Add selectedSkin field to PlayerProfile and skin selection UI
+- [X] T094 [US3] Apply selected skin sprite to player character
+- [X] T095 [US3] Persist cosmetic unlock states in IndexedDB
 - [ ] T096 [US3] Create coin bundle definitions (Small $0.99, Medium $4.99, Large $9.99)
 - [ ] T097 [US3] Implement "Buy Coins" interface with bundle selection
 - [ ] T098 [US3] Add IAP transaction flow with provider selection (web/iOS/Android)
@@ -193,27 +193,27 @@
 
 ### Implementation for User Story 4
 
-- [ ] T113 [P] [US4] Create src/data/challenges.js - DailyChallenge entity and generation logic per data-model.md
-- [ ] T114 [P] [US4] Create src/game/challenge-tracker.js - Progress tracking during gameplay
-- [ ] T115 [P] [US4] Create src/ui/challenges.js - Challenge display and progress UI
-- [ ] T116 [US4] Implement daily challenge generation algorithm (3 types: jumps, coins, distance)
-- [ ] T117 [US4] Add challenge expiration logic (midnight in local timezone)
-- [ ] T118 [US4] Display active challenge on main menu with progress bar
-- [ ] T119 [US4] Track challenge progress during gameplay (increment counters)
-- [ ] T120 [US4] Detect challenge completion in game loop
-- [ ] T121 [US4] Add "Challenge Complete!" notification overlay
-- [ ] T122 [US4] Award bonus coins on challenge completion
-- [ ] T123 [US4] Update PlayerProfile with currentStreak and lastPlayDate
-- [ ] T124 [US4] Implement streak calculation (consecutive calendar days in local timezone)
-- [ ] T125 [US4] Add streak counter display on main menu
-- [ ] T126 [US4] Implement streak multiplier logic (2x at 3 days, 3x at 7 days, 5x at 30 days)
-- [ ] T127 [US4] Apply multiplier to challenge rewards
-- [ ] T128 [US4] Add streak reset logic when day missed (>24 hours since last play)
-- [ ] T129 [US4] Display streak milestone notifications (3, 7, 30 days)
-- [ ] T130 [US4] Persist challenge completion state in IndexedDB
-- [ ] T131 [P] [US4] Create tests/unit/data/challenges.test.js - Test challenge generation and expiration
-- [ ] T132 [P] [US4] Create tests/unit/game/challenge-tracker.test.js - Test progress tracking accuracy
-- [ ] T133 [P] [US4] Create tests/integration/challenges.test.js - Test full challenge flow
+- [X] T113 [P] [US4] Create src/data/challenges.js - DailyChallenge entity and generation logic per data-model.md
+- [X] T114 [P] [US4] Create src/game/challenge-tracker.js - Progress tracking during gameplay
+- [X] T115 [P] [US4] Create src/ui/challenges.js - Challenge display and progress UI
+- [X] T116 [US4] Implement daily challenge generation algorithm (3 types: jumps, coins, distance)
+- [X] T117 [US4] Add challenge expiration logic (midnight in local timezone)
+- [X] T118 [US4] Display active challenge on main menu with progress bar
+- [X] T119 [US4] Track challenge progress during gameplay (increment counters)
+- [X] T120 [US4] Detect challenge completion in game loop
+- [X] T121 [US4] Add "Challenge Complete!" notification overlay
+- [X] T122 [US4] Award bonus coins on challenge completion
+- [X] T123 [US4] Update PlayerProfile with currentStreak and lastPlayDate
+- [X] T124 [US4] Implement streak calculation (consecutive calendar days in local timezone)
+- [X] T125 [US4] Add streak counter display on main menu
+- [X] T126 [US4] Implement streak multiplier logic (2x at 3 days, 3x at 7 days, 5x at 30 days)
+- [X] T127 [US4] Apply multiplier to challenge rewards
+- [X] T128 [US4] Add streak reset logic when day missed (>24 hours since last play)
+- [X] T129 [US4] Display streak milestone notifications (3, 7, 30 days)
+- [X] T130 [US4] Persist challenge completion state in IndexedDB
+- [X] T131 [P] [US4] Create tests/unit/data/challenges.test.js - Test challenge generation and expiration
+- [X] T132 [P] [US4] Create tests/unit/game/challenge-tracker.test.js - Test progress tracking accuracy
+- [X] T133 [P] [US4] Create tests/integration/challenges.test.js - Test full challenge flow
 - [ ] T134 [US4] Test streak calculation with simulated date changes
 - [ ] T135 [US4] Verify multiplier applies correctly at each streak milestone
 - [ ] T136 [US4] Test challenge expiration at midnight in multiple timezones
@@ -337,6 +337,20 @@
 - [ ] T222 Monitor Application Insights for first 48 hours
 - [ ] T223 Announce launch and begin user acquisition
 
+### CI Quality Gates
+
+- [ ] T224 Add CI workflow to run unit/integration tests on pull requests
+- [ ] T225 Add CI workflow to run performance benchmarks on pull requests (fps/memory/load)
+- [ ] T226 Enforce performance regression threshold (fail PR if <55 FPS or >150MB)
+- [ ] T227 Add QA/UAT checklist gate for UI/UX changes before merge
+
+### Telemetry & Analytics
+
+- [ ] T228 Define analytics events for SC-003 through SC-010 (sessions, retention, streaks, IAP conversion)
+- [ ] T229 Implement client-side telemetry logging with opt-in toggle
+- [ ] T230 Create analytics dashboard queries/notes to measure SC-003 through SC-010
+- [ ] T231 Validate analytics event coverage in test plan
+
 **Checkpoint**: Game complete, tested, deployed, and live!
 
 ---
@@ -409,14 +423,14 @@ This delivers:
 
 ## Task Metrics
 
-**Total Tasks**: 223
+**Total Tasks**: 231
 - Phase 1 (Setup): 17 tasks
 - Phase 2 (Foundational): 16 tasks
 - Phase 3 (US1 - Core Gameplay): 25 tasks 🎯 MVP
 - Phase 4 (US2 - Score Progression): 19 tasks
 - Phase 5 (US3 - Monetization): 35 tasks
 - Phase 6 (US4 - Retention): 24 tasks
-- Phase 7 (Polish): 87 tasks
+- Phase 7 (Polish): 95 tasks
 
 **Parallel Tasks Identified**: 89 tasks marked with [P] flag
 
@@ -440,7 +454,7 @@ This delivers:
 - Week 6: US4 complete (T113-T136)
 - Week 7-8: Polish + Deployment (T137-T223)
 
-**Format Validation**: ✅ All 223 tasks follow required checklist format with checkboxes, task IDs, [P] markers where appropriate, [Story] labels for user story phases, and file paths in descriptions.
+**Format Validation**: ✅ All 231 tasks follow required checklist format with checkboxes, task IDs, [P] markers where appropriate, [Story] labels for user story phases, and file paths in descriptions.
 
 ---
 

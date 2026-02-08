@@ -18,35 +18,35 @@ export class AchievementManager {
       // Score milestones
       {
         id: 'score_100',
-        name: 'Getting Started',
+        name: 'First Pounce',
         description: 'Reach 100 points',
-        icon: '🌟',
+        icon: '🐾',
         condition: (stats) => stats.score >= 100
       },
       {
         id: 'score_500',
-        name: 'Money Runner',
+        name: 'Alley Sprinter',
         description: 'Reach 500 points',
-        icon: '💰',
+        icon: '🐱',
         condition: (stats) => stats.score >= 500
       },
       {
         id: 'score_1000',
-        name: 'Business Expert',
+        name: 'Night Stalker',
         description: 'Reach 1000 points',
-        icon: '💼',
+        icon: '🌙',
         condition: (stats) => stats.score >= 1000
       },
       {
         id: 'score_2000',
-        name: 'Executive',
+        name: 'Roof Runner',
         description: 'Reach 2000 points',
-        icon: '👔',
+        icon: '🏠',
         condition: (stats) => stats.score >= 2000
       },
       {
         id: 'score_5000',
-        name: 'CEO',
+        name: 'Street Legend',
         description: 'Reach 5000 points',
         icon: '🏆',
         condition: (stats) => stats.score >= 5000
@@ -55,21 +55,21 @@ export class AchievementManager {
       // Obstacle milestones
       {
         id: 'obstacles_50',
-        name: 'Obstacle Dodger',
+        name: 'Trash Dodger',
         description: 'Pass 50 obstacles',
-        icon: '🚧',
+        icon: '🗑️',
         condition: (stats) => stats.obstaclesPassed >= 50
       },
       {
         id: 'obstacles_100',
-        name: 'Obstacle Master',
+        name: 'Alley Acrobat',
         description: 'Pass 100 obstacles',
         icon: '🎯',
         condition: (stats) => stats.obstaclesPassed >= 100
       },
       {
         id: 'obstacles_500',
-        name: 'Unstoppable',
+        name: 'Untouchable Cat',
         description: 'Pass 500 obstacles',
         icon: '⚡',
         condition: (stats) => stats.obstaclesPassed >= 500
@@ -78,39 +78,39 @@ export class AchievementManager {
       // Jump milestones
       {
         id: 'jumps_100',
-        name: 'Bouncy',
+        name: 'High Paws',
         description: 'Jump 100 times',
-        icon: '🦘',
+        icon: '🐾',
         condition: (stats) => stats.jumps >= 100
       },
       {
         id: 'jumps_500',
-        name: 'Jump Master',
+        name: 'Roof Hopper',
         description: 'Jump 500 times',
-        icon: '🎪',
+        icon: '🪜',
         condition: (stats) => stats.jumps >= 500
       },
       
       // Games played milestones
       {
         id: 'games_10',
-        name: 'Persistent',
+        name: 'Curious Cat',
         description: 'Play 10 games',
-        icon: '🎮',
+        icon: '😺',
         condition: (stats) => stats.gamesPlayed >= 10
       },
       {
         id: 'games_50',
-        name: 'Dedicated',
+        name: 'Tenacious Tabby',
         description: 'Play 50 games',
-        icon: '🕹️',
+        icon: '🐈',
         condition: (stats) => stats.gamesPlayed >= 50
       },
       {
         id: 'games_100',
-        name: 'Addicted',
+        name: 'Nine Lives Pro',
         description: 'Play 100 games',
-        icon: '🎰',
+        icon: '✨',
         condition: (stats) => stats.gamesPlayed >= 100
       }
     ];

@@ -28,6 +28,9 @@ import { StatisticsScreen } from './ui/statistics.js';
 import { SettingsScreen } from './ui/settings.js';
 import { CoinManager } from './game/coin.js';
 import { Shop } from './ui/shop.js';
+import { DailyChallengeManager } from './data/challenges.js';
+import { ChallengeTracker } from './game/challenge-tracker.js';
+import { ChallengesUI } from './ui/challenges.js';
 
 /**
  * Main application class
@@ -54,6 +57,11 @@ class Game {
     this.settingsScreen = null;
     this.coinManager = null;
     this.shop = null;
+    this.challengeManager = null;
+    this.challengeTracker = null;
+    this.challengeUI = null;
+    this.activeChallenge = null;
+    this.lastScoreForChallenge = 0;
     this.coinsCollectedThisRun = 0;
     this.isRunning = false;
     this.isPaused = false;
@@ -100,6 +108,9 @@ class Game {
 
       // Create game objects
       this.createGameObjects();
+
+      // Initialize daily challenges
+      await this.initChallenges();
 
       // Setup input handlers
       this.setupInput();
@@ -152,6 +163,23 @@ class Game {
       console.log(`Selected Cosmetic: ${this.profile.selectedCosmetic}`);
     } catch (error) {
       console.error('Failed to load profile:', error);
+    }
+  }
+
+  /**
+   * Initialize daily challenge state
+   */
+  async initChallenges() {
+    this.challengeManager = new DailyChallengeManager(this.storage);
+    this.activeChallenge = await this.challengeManager.getOrCreateChallenge(
+      this.profile.currentStreak,
+      new Date()
+    );
+    this.challengeTracker = new ChallengeTracker(this.activeChallenge);
+    this.lastScoreForChallenge = 0;
+
+    if (this.challengeUI) {
+      this.challengeUI.show(this.activeChallenge, this.profile.currentStreak);
     }
   }
 
@@ -223,6 +251,10 @@ class Game {
     this.shop = new Shop();
     this.shop.create(stage);
 
+    // Create challenges UI (on top of everything)
+    this.challengeUI = new ChallengesUI();
+    this.challengeUI.create(stage);
+
     // Wire up menu callbacks
     this.menu.onStatisticsClick = () => {
       if (this.profile && this.achievementManager) {
@@ -283,6 +315,12 @@ class Game {
       } else if (this.gameState === 'PLAYING') {
         this.player.jump();
         this.session.incrementJumps();
+        if (this.challengeTracker) {
+          const completed = this.challengeTracker.recordJump(1);
+          if (completed) {
+            this.handleChallengeCompletion();
+          }
+        }
         // Create jump sparkles
         const playerBounds = this.player.getBounds();
         this.particles.createJumpSparkles(
@@ -331,10 +369,14 @@ class Game {
     this.gameState = 'PLAYING';
     this.session.start();
     this.scoring.start();
+    this.lastScoreForChallenge = 0;
     this.coinsCollectedThisRun = 0;
     this.menu.hide();
     this.hud.showGameStarted();
     this.hud.updateCoins(0);
+    if (this.challengeUI) {
+      this.challengeUI.hide();
+    }
     console.log('Game started! Session:', this.session.sessionId);
   }
 
@@ -345,8 +387,12 @@ class Game {
     this.player.reset();
     this.obstacleManager.reset();
     this.coinManager.reset();
+    this.lastScoreForChallenge = 0;
     this.coinsCollectedThisRun = 0;
     this.difficultyManager.reset();
+    if (this.challengeUI) {
+      this.challengeUI.hide();
+    }
     this.scoring.reset();
     this.hud.reset();
     this.session.reset();
@@ -355,23 +401,25 @@ class Game {
     this.scrollSpeed = CONFIG.PLAYER.RUN_SPEED;
     this.menu.showStartScreen();
     this.gameState = 'MENU';
+    this.refreshChallenge();
     console.log('Game restarted - ready for new session');
   }
 
   /**
    * Game over
    */
-  async gameOver() {
+  async gameOver(collisionEffect = null) {
     this.gameState = 'GAME_OVER';
     this.scoring.stop();
     this.session.end();
-    this.player.die();
+    this.player.die(collisionEffect);
     
     // Create explosion particles at collision point
     const playerBounds = this.player.getBounds();
     this.particles.createExplosion(
       playerBounds.x + playerBounds.width / 2,
-      playerBounds.y + playerBounds.height / 2
+      playerBounds.y + playerBounds.height / 2,
+      this.getCollisionColor(collisionEffect)
     );
     
     // Camera shake on collision
@@ -391,6 +439,11 @@ class Game {
     
     // Record session in profile
     const result = await this.profile.recordSession(sessionData);
+
+    // Streak milestone notification
+    if (this.challengeUI && [3, 7, 30].includes(this.profile.currentStreak)) {
+      this.challengeUI.showStreakMilestone(this.profile.currentStreak);
+    }
     
     // Check for high score celebration
     if (result.isNewHighScore) {
@@ -408,21 +461,33 @@ class Game {
       profileStats,
       this.profile.achievements
     );
+
+    const unlockedAchievements = [];
     
     // Unlock new achievements
     for (const achievementId of newAchievements) {
       await this.profile.unlockAchievement(achievementId);
       const achievement = this.achievementManager.getAchievement(achievementId);
       console.log(`Achievement unlocked: ${achievement.name}`);
+
+      if (achievement) {
+        unlockedAchievements.push(achievement);
+      }
       
       // Show achievement celebration after high score celebration
       setTimeout(() => {
         this.celebration.playAchievementUnlock(achievement);
       }, result.isNewHighScore ? 3500 : 500);
     }
+
+    // Persist challenge progress and refresh daily challenge
+    if (this.challengeManager && this.activeChallenge) {
+      await this.challengeManager.saveChallenge(this.activeChallenge);
+    }
+    await this.refreshChallenge();
     
     // Show game over menu
-    this.menu.showGameOver(finalScore, result.isNewHighScore, this.coinsCollectedThisRun);
+    this.menu.showGameOver(finalScore, result.isNewHighScore, this.coinsCollectedThisRun, unlockedAchievements);
     
     // Log session data
     console.log('Game over. Session data:', sessionData);
@@ -529,6 +594,19 @@ class Game {
       // Update scoring
       this.scoring.update(deltaTime, this.scrollSpeed);
 
+      // Track distance progress for challenges
+      if (this.challengeTracker) {
+        const updatedScore = this.scoring.getScore();
+        const scoreDelta = updatedScore - this.lastScoreForChallenge;
+        if (scoreDelta > 0) {
+          const completed = this.challengeTracker.recordDistance(scoreDelta);
+          if (completed) {
+            this.handleChallengeCompletion();
+          }
+        }
+        this.lastScoreForChallenge = updatedScore;
+      }
+
       // Check collisions
       this.checkCollisions();
 
@@ -573,7 +651,7 @@ class Game {
     const obstacles = this.obstacleManager.getObstacleBounds();
     for (const obstacle of obstacles) {
       if (Physics.checkCollision(playerBounds, obstacle)) {
-        this.gameOver();
+        this.gameOver(obstacle.effect);
         break;
       }
     }
@@ -582,6 +660,12 @@ class Game {
     const coinsCollected = this.coinManager.checkCollisions(playerBounds);
     if (coinsCollected > 0) {
       this.coinsCollectedThisRun += coinsCollected;
+      if (this.challengeTracker) {
+        const completed = this.challengeTracker.recordCoins(coinsCollected);
+        if (completed) {
+          this.handleChallengeCompletion();
+        }
+      }
       
       // Play coin collection sound
       if (this.audio) {
@@ -710,6 +794,65 @@ class Game {
       this.player.applyColors(cosmetic.colors);
       console.log('Applied cosmetic:', cosmetic.name);
     }
+  }
+
+  /**
+   * Refresh the active challenge and update UI
+   */
+  async refreshChallenge() {
+    if (!this.challengeManager || !this.profile) return;
+    this.activeChallenge = await this.challengeManager.getOrCreateChallenge(
+      this.profile.currentStreak,
+      new Date()
+    );
+
+    if (this.challengeTracker) {
+      this.challengeTracker.setChallenge(this.activeChallenge);
+    } else {
+      this.challengeTracker = new ChallengeTracker(this.activeChallenge);
+    }
+
+    if (this.challengeUI) {
+      this.challengeUI.show(this.activeChallenge, this.profile.currentStreak);
+    }
+  }
+
+  /**
+   * Handle challenge completion rewards
+   */
+  async handleChallengeCompletion() {
+    if (!this.activeChallenge || !this.activeChallenge.isCompleted) return;
+
+    const rewardCoins = this.activeChallenge.rewardCoins || 0;
+    if (rewardCoins > 0 && this.profile) {
+      this.profile.addCoins(rewardCoins);
+      await this.profile.save();
+    }
+
+    if (this.challengeManager) {
+      await this.challengeManager.saveChallenge(this.activeChallenge);
+    }
+
+    if (this.challengeUI) {
+      this.challengeUI.showCompletion(rewardCoins);
+    }
+  }
+
+  /**
+   * Get collision particle color by effect
+   * @param {string|null} effect - Collision effect key
+   * @returns {number} Hex color
+   */
+  getCollisionColor(effect) {
+    const colors = {
+      wet: 0x6EC6FF,
+      filthy: 0x8B5A2B,
+      tangled: 0xB57CFF,
+      startled: 0xFFD54F,
+      default: 0xFF6B6B
+    };
+
+    return colors[effect] || colors.default;
   }
 }
 

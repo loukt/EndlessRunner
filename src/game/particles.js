@@ -52,13 +52,14 @@ export class ParticleSystem {
    * Create collision explosion particles
    * @param {number} x - X position
    * @param {number} y - Y position
+   * @param {number} color - Particle color
    */
-  createExplosion(x, y) {
+  createExplosion(x, y, color = 0xFF6B6B) {
     const particleCount = 15;
     
     for (let i = 0; i < particleCount; i++) {
       const particle = new PIXI.Graphics();
-      particle.beginFill(0xFF6B6B, 1.0); // Red color
+      particle.beginFill(color, 1.0);
       particle.drawCircle(0, 0, Math.random() * 4 + 2);
       particle.endFill();
 
@@ -112,7 +113,7 @@ export class ParticleSystem {
     
     for (let i = 0; i < particleCount; i++) {
       const particle = new PIXI.Graphics();
-      particle.beginFill(0xFFD700, 1.0); // Gold sparkle
+      particle.beginFill(0x6EC6FF, 1.0);
       particle.drawCircle(0, 0, Math.random() * 3 + 2);
       particle.endFill();
 

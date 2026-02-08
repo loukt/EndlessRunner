@@ -111,7 +111,9 @@ export class StatisticsScreen {
       `🏃 Total Distance: ${profileStats.totalDistance}m`,
       `⬆️ Total Jumps: ${profileStats.totalJumps}`,
       `🚧 Obstacles Passed: ${profileStats.totalObstacles}`,
-      `💰 Total Coins: ${profileStats.totalCoins}`,
+      `🐟 Total Fish: ${profileStats.totalCoins}`,
+      `🐠 Lifetime Fish: ${profileStats.lifetimeCoins || 0}`,
+      `🔥 Current Streak: ${profileStats.currentStreak || 0}`,
       `⭐ Achievements: ${profileStats.achievementsUnlocked}`,
     ];
 

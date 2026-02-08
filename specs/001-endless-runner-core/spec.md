@@ -19,7 +19,7 @@
 
 ### User Story 1 - Quick Play Session (Priority: P1)
 
-A casual player opens the game and immediately starts playing without tutorials or setup. They control a character running automatically from left to right, tapping or clicking to jump over obstacles. The game continues until they hit an obstacle, showing their score and encouraging them to try again.
+A casual player opens the game and starts playing within seconds without tutorials or setup. They control a character running automatically from left to right, tapping or clicking to jump over obstacles. The game continues until they hit an obstacle, showing their score and encouraging them to try again.
 
 **Why this priority**: This is the absolute core MVP - the fundamental endless runner gameplay loop. Without this working perfectly, no other features matter. This delivers immediate value and validates the core game mechanics.
 
@@ -27,7 +27,7 @@ A casual player opens the game and immediately starts playing without tutorials 
 
 **Acceptance Scenarios**:
 
-1. **Given** game is launched for first time, **When** player taps anywhere on screen, **Then** character jumps and game starts immediately (no menus or tutorials)
+1. **Given** game is launched for first time, **When** player taps the start screen, **Then** character jumps and game starts immediately (no tutorials)
 2. **Given** character is running, **When** obstacle approaches, **Then** player can see obstacle clearly with at least 2 seconds warning time
 3. **Given** player taps screen, **When** character is on ground, **Then** character jumps with consistent height and arc
 4. **Given** character collides with obstacle, **When** collision detected, **Then** game ends immediately showing final score
@@ -55,7 +55,7 @@ A player completes their first run and sees their score. On subsequent runs, the
 
 ### User Story 3 - Character Customization Shop (Priority: P3)
 
-A player earns in-game currency (coins) during gameplay by collecting them while running. Between runs, they can visit a shop to purchase different character skins, trail effects, or obstacle themes using accumulated coins. Players can also purchase coin bundles with real money to unlock customizations faster.
+A player earns in-game currency (coins) during gameplay by collecting them while running. Between runs, they can visit a shop to purchase different character skins using accumulated coins. Trail effects and obstacle themes are reserved for future cosmetic expansions. Players can also purchase coin bundles with real money to unlock customizations faster.
 
 **Why this priority**: This is the monetization mechanism. While important for business model, the game must be fun and engaging (P1, P2) before players will want to spend money. This can be added after core gameplay proves engaging.
 
@@ -132,6 +132,9 @@ A returning player sees a daily challenge (e.g., "Jump 50 times" or "Collect 100
 - **FR-022**: Game MUST handle pause/resume when app goes to background (mobile)
 - **FR-023**: Game MUST scale properly to different screen sizes and orientations
 - **FR-024**: Game MUST provide family-friendly visual design with no violent content
+- **FR-025**: Game MUST provide a production deployment pipeline for static hosting with monitoring
+- **FR-026**: Game MUST provide user-facing documentation and privacy disclosure for locally stored data
+- **FR-027**: Game MUST provide optional, privacy-respecting analytics to measure success criteria
 
 ### Key Entities
 
@@ -139,7 +142,7 @@ A returning player sees a daily challenge (e.g., "Jump 50 times" or "Collect 100
 - **Game Session**: Records current run distance/score, coins collected this run, obstacles passed, challenge progress
 - **Obstacle**: Represents hazards to jump over, has position, visual appearance, collision boundaries
 - **Collectible Coin**: Items to collect during run, has position, collection state, visual appearance
-- **Cosmetic Item**: Purchasable customization options (character skins, trails, themes), has price in coins, unlock state, visual assets
+- **Cosmetic Item**: Purchasable customization options (character skins in v1), has price in coins, unlock state, visual assets
 - **Daily Challenge**: Objective to complete (jump count, coin collection, distance), completion state, reward amount, expiration date
 - **Streak Record**: Tracks consecutive days played, current multiplier, last login date
 - **Coin Bundle**: In-app purchase offering, contains coin amount, real money price, platform product identifier
@@ -188,6 +191,7 @@ The following features are explicitly excluded from this specification:
 - Advanced character abilities beyond jumping (no dash, double jump, special moves)
 - Dynamic difficulty adjustment (consistent challenge level)
 - Seasonal events or limited-time content
+- Trail effects and obstacle theme cosmetics (future expansion)
 
 ## Monetization Economics
 

@@ -17,28 +17,41 @@ export class Coin {
   }
 
   /**
-   * Create coin sprite
+   * Create fish token sprite
    * @param {PIXI.Renderer} renderer - PixiJS renderer for texture generation
    */
   create(renderer) {
     this.container = new PIXI.Container();
 
-    // Draw coin as gold circle with $ symbol
+    // Draw fish token
     const graphics = new PIXI.Graphics();
-    
-    // Outer gold circle
-    graphics.beginFill(0xFFD700); // Gold color
-    graphics.drawCircle(0, 0, this.radius);
+
+    // Body
+    graphics.beginFill(0x6EC6FF);
+    graphics.drawEllipse(0, 0, this.radius + 2, this.radius - 2);
     graphics.endFill();
 
-    // Inner darker circle for depth
-    graphics.beginFill(0xDAA520); // Darker gold
-    graphics.drawCircle(0, 0, this.radius - 2);
+    // Tail
+    graphics.beginFill(0x4A90E2);
+    graphics.drawPolygon([
+      this.radius + 1, 0,
+      this.radius + 10, -6,
+      this.radius + 10, 6
+    ]);
     graphics.endFill();
 
-    // Add shine effect (small white circle)
-    graphics.beginFill(0xFFFFFF, 0.6);
-    graphics.drawCircle(-3, -3, 3);
+    // Fin
+    graphics.beginFill(0x5AAEF7);
+    graphics.drawPolygon([
+      -4, -2,
+      2, -10,
+      4, -2
+    ]);
+    graphics.endFill();
+
+    // Eye
+    graphics.beginFill(0x1B1B1B);
+    graphics.drawCircle(-6, -2, 2);
     graphics.endFill();
 
     // Create texture from graphics
@@ -46,19 +59,7 @@ export class Coin {
     const sprite = new PIXI.Sprite(texture);
     sprite.anchor.set(0.5);
 
-    // Add $ symbol
-    const dollarSign = new PIXI.Text('$', {
-      fontFamily: 'Arial',
-      fontSize: 16,
-      fontWeight: 'bold',
-      fill: 0x000000,
-      align: 'center'
-    });
-    dollarSign.anchor.set(0.5);
-    dollarSign.position.set(0, 0);
-
     this.container.addChild(sprite);
-    this.container.addChild(dollarSign);
 
     return this.container;
   }

@@ -12,9 +12,9 @@ Build a cross-platform (web + mobile) 2D endless runner game with immediate play
 ## Technical Context
 
 **Language/Version**: JavaScript ES2022 (maximum browser/mobile compatibility)  
-**Primary Dependencies**: NEEDS CLARIFICATION - lightweight game engine selection  
+**Primary Dependencies**: PixiJS v7 (WebGL-accelerated 2D rendering)  
 **Storage**: IndexedDB (web/PWA) + localStorage fallback; native storage APIs for wrapped mobile apps  
-**Testing**: NEEDS CLARIFICATION - JavaScript testing framework selection  
+**Testing**: Vitest (unit/integration) + Playwright (performance/E2E)  
 **Target Platform**: Web (Chrome 90+, Safari 14+, Firefox 88+), iOS 14+, Android 8+ via PWA or thin native wrapper  
 **Project Type**: Web application with mobile PWA deployment (Option 2 structure with shared game engine)  
 **Performance Goals**: 60 FPS sustained gameplay, <2s initial load, <150MB memory, 16ms frame budget  
@@ -26,7 +26,7 @@ Build a cross-platform (web + mobile) 2D endless runner game with immediate play
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 ### I. Intuitive UX (NON-NEGOTIABLE)
-- ✅ **PASS**: Game launches directly into gameplay with tap-to-jump mechanic (5 second rule)
+- ✅ **PASS**: Game starts via a simple start screen and enters gameplay within 5 seconds
 - ✅ **PASS**: Single input control (tap/click only) - maximum simplicity
 - ✅ **PASS**: Visual feedback clear (score display, collision detection, celebration animations)
 
@@ -40,13 +40,13 @@ Build a cross-platform (web + mobile) 2D endless runner game with immediate play
 - ✅ **PASS**: <2s load time requirement in FR-021
 - ✅ **PASS**: <150MB memory budget established
 - ✅ **PASS**: Performance profiling mandatory before merge
-- ⚠️ **ACTION REQUIRED**: Must select lightweight game engine in Phase 0 research
+- ✅ **PASS**: PixiJS v7 selected in Phase 0 research
 
 ### IV. Test-Driven Quality
 - ✅ **PASS**: Automated testing for core mechanics required
 - ✅ **PASS**: Performance benchmarks mandatory
 - ✅ **PASS**: Device testing on minimum spec hardware required
-- ⚠️ **ACTION REQUIRED**: Must define testing framework in Phase 0 research
+- ✅ **PASS**: Vitest + Playwright selected in Phase 0 research
 
 ### V. Simplicity & Clarity
 - ✅ **PASS**: Single core mechanic (jump)
@@ -54,7 +54,7 @@ Build a cross-platform (web + mobile) 2D endless runner game with immediate play
 - ✅ **PASS**: No unnecessary complexity - cosmetics only, no power-ups
 - ✅ **PASS**: Each feature has clear player benefit
 
-**GATE STATUS**: ⚠️ CONDITIONAL PASS - Proceed to Phase 0 with 2 research items required
+**GATE STATUS**: ✅ PASS - Phase 0 research decisions confirmed
 
 ## Project Structure
 

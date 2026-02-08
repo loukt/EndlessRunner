@@ -6,6 +6,7 @@
 
 import * as PIXI from 'pixi.js';
 import { CONFIG } from '../config.js';
+import { AchievementsDisplay } from './achievements.js';
 
 export class Menu {
   constructor() {
@@ -16,6 +17,7 @@ export class Menu {
     this.statisticsButton = null;
     this.settingsButton = null;
     this.shopButton = null;
+    this.achievementsDisplay = null;
     this.onStatisticsClick = null;
     this.onSettingsClick = null;
     this.onShopClick = null;
@@ -202,7 +204,7 @@ export class Menu {
     this.gameOverScreen.addChild(this.finalScoreText);
 
     // Coins collected text
-    this.coinsCollectedText = new PIXI.Text('💰 Coins: 0', {
+    this.coinsCollectedText = new PIXI.Text('🐟 Fish: 0', {
       fontFamily: 'Arial',
       fontSize: 28,
       fill: 0xFFD700,
@@ -230,6 +232,12 @@ export class Menu {
     this.highScoreText.y = CONFIG.CANVAS.HEIGHT / 2 + 50;
     this.highScoreText.visible = false;
     this.gameOverScreen.addChild(this.highScoreText);
+
+    // Achievements display
+    this.achievementsDisplay = new AchievementsDisplay();
+    this.achievementsDisplay.create(this.gameOverScreen);
+    this.achievementsDisplay.container.x = CONFIG.CANVAS.WIDTH / 2 - 160;
+    this.achievementsDisplay.container.y = CONFIG.CANVAS.HEIGHT / 2 + 80;
 
     // Restart button
     const restartText = new PIXI.Text('TAP TO RESTART', {
@@ -296,16 +304,24 @@ export class Menu {
    * @param {number} score - Final score
    * @param {boolean} isNewHighScore - Whether this is a new high score
    * @param {number} coinsCollected - Coins collected this run
+   * @param {Array} achievements - Newly unlocked achievements
    */
-  showGameOver(score, isNewHighScore = false, coinsCollected = 0) {
+  showGameOver(score, isNewHighScore = false, coinsCollected = 0, achievements = []) {
     this.container.visible = true;
     this.startScreen.visible = false;
     this.gameOverScreen.visible = true;
     this.pauseScreen.visible = false;
 
     this.finalScoreText.text = `Score: ${score}`;
-    this.coinsCollectedText.text = `💰 Coins: ${coinsCollected}`;
+    this.coinsCollectedText.text = `🐟 Fish: ${coinsCollected}`;
     this.highScoreText.visible = isNewHighScore;
+    if (this.achievementsDisplay) {
+      if (achievements.length > 0) {
+        this.achievementsDisplay.showAchievements(achievements, 'New Achievements');
+      } else {
+        this.achievementsDisplay.hide();
+      }
+    }
   }
 
   /**

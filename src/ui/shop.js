@@ -51,7 +51,7 @@ export class Shop {
     this.container.addChild(title);
 
     // Coin balance display
-    this.coinBalanceText = new PIXI.Text('💰 Coins: 0', {
+    this.coinBalanceText = new PIXI.Text('🐟 Fish: 0', {
       fontFamily: 'Arial',
       fontSize: 28,
       fill: 0xFFD700,
@@ -89,7 +89,7 @@ export class Shop {
     this.isVisible = true;
 
     // Update coin balance
-    this.coinBalanceText.text = `💰 Coins: ${profile.totalCoins}`;
+    this.coinBalanceText.text = `🐟 Fish: ${profile.totalCoins}`;
 
     // Clear previous items
     this.itemsContainer.removeChildren();
@@ -148,9 +148,9 @@ export class Shop {
     bg.drawRoundedRect(0, 0, width, height, 10);
     card.addChild(bg);
 
-    // Color preview (small box showing suit color)
+    // Color preview (small box showing fur color)
     const preview = new PIXI.Graphics();
-    preview.beginFill(cosmetic.colors.suit);
+    preview.beginFill(cosmetic.colors.fur);
     preview.drawRoundedRect(10, 10, 40, 40, 5);
     preview.endFill();
     preview.lineStyle(2, 0xFFFFFF, 1);
@@ -194,10 +194,10 @@ export class Shop {
       buttonText = 'SELECT';
       buttonColor = 0x2ECC71; // Light green
     } else if (canAfford) {
-      buttonText = `${cosmetic.price} 💰`;
+      buttonText = `${cosmetic.price} 🐟`;
       buttonColor = 0xE67E22; // Orange
     } else {
-      buttonText = `${cosmetic.price} 💰`;
+      buttonText = `${cosmetic.price} 🐟`;
       buttonColor = 0x95A5A6; // Gray (can't afford)
     }
 

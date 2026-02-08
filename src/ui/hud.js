@@ -52,8 +52,8 @@ export class HUD {
     this.levelText.y = 20;
     this.container.addChild(this.levelText);
 
-    // Coin counter (top right)
-    this.coinText = new PIXI.Text('💰 0', {
+    // Fish counter (top right)
+    this.coinText = new PIXI.Text('🐟 0', {
       fontFamily: 'Arial',
       fontSize: 24,
       fill: 0xFFD700,
@@ -116,12 +116,12 @@ export class HUD {
   }
 
   /**
-   * Update coin display
-   * @param {number} coins - Coins collected this run
+   * Update fish display
+   * @param {number} coins - Fish collected this run
    */
   updateCoins(coins) {
     if (this.coinText) {
-      this.coinText.text = `💰 ${coins}`;
+      this.coinText.text = `🐟 ${coins}`;
     }
   }
 

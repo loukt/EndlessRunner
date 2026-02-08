@@ -5,6 +5,9 @@
  */
 
 import { StorageManager } from './storage.js';
+import { getCosmeticById } from './cosmetics.js';
+
+const DEFAULT_COSMETIC_ID = 'cat-tabby';
 
 export class PlayerProfile {
   constructor() {
@@ -17,10 +20,13 @@ export class PlayerProfile {
     this.totalJumps = 0;
     this.totalObstacles = 0;
     this.totalCoins = 0;
+    this.lifetimeCoins = 0;
     this.gamesPlayed = 0;
+    this.currentStreak = 0;
+    this.lastPlayDate = null;
     this.achievements = [];
-    this.ownedCosmetics = ['businessman-default']; // Default skin is always owned
-    this.selectedCosmetic = 'businessman-default';
+    this.ownedCosmetics = [DEFAULT_COSMETIC_ID]; // Default skin is always owned
+    this.selectedCosmetic = DEFAULT_COSMETIC_ID;
     this.createdAt = null;
     this.lastPlayedAt = null;
   }
@@ -48,12 +54,17 @@ export class PlayerProfile {
         this.totalJumps = saved.totalJumps || 0;
         this.totalObstacles = saved.totalObstacles || 0;
         this.totalCoins = saved.totalCoins || 0;
+        this.lifetimeCoins = saved.lifetimeCoins || 0;
         this.gamesPlayed = saved.gamesPlayed || 0;
+        this.currentStreak = saved.currentStreak || 0;
+        this.lastPlayDate = saved.lastPlayDate || null;
         this.achievements = saved.achievements || [];
-        this.ownedCosmetics = saved.ownedCosmetics || ['businessman-default'];
-        this.selectedCosmetic = saved.selectedCosmetic || 'businessman-default';
+        this.ownedCosmetics = saved.ownedCosmetics || [DEFAULT_COSMETIC_ID];
+        this.selectedCosmetic = saved.selectedCosmetic || DEFAULT_COSMETIC_ID;
         this.createdAt = saved.createdAt;
         this.lastPlayedAt = saved.lastPlayedAt;
+
+        this.normalizeCosmetics();
         
         console.log('Profile loaded:', saved);
       } else {
@@ -79,7 +90,10 @@ export class PlayerProfile {
         totalJumps: this.totalJumps,
         totalObstacles: this.totalObstacles,
         totalCoins: this.totalCoins,
+        lifetimeCoins: this.lifetimeCoins,
         gamesPlayed: this.gamesPlayed,
+        currentStreak: this.currentStreak,
+        lastPlayDate: this.lastPlayDate,
         achievements: this.achievements,
         ownedCosmetics: this.ownedCosmetics,
         selectedCosmetic: this.selectedCosmetic,
@@ -119,9 +133,12 @@ export class PlayerProfile {
     this.totalDistance += sessionData.distance || 0;
     this.totalJumps += sessionData.jumps || 0;
     this.totalObstacles += sessionData.obstaclesPassed || 0;
-    this.totalCoins += sessionData.coinsCollected || 0;
+    const coinsCollected = sessionData.coinsCollected || 0;
+    this.totalCoins += coinsCollected;
+    this.lifetimeCoins += coinsCollected;
     this.gamesPlayed += 1;
     this.lastPlayedAt = new Date().toISOString();
+    this.updateStreak(new Date());
     
     // Check for new high score
     const isNewHighScore = this.updateHighScore(sessionData.score || 0);
@@ -169,10 +186,58 @@ export class PlayerProfile {
       totalJumps: this.totalJumps,
       totalObstacles: this.totalObstacles,
       totalCoins: this.totalCoins,
+      lifetimeCoins: this.lifetimeCoins,
       gamesPlayed: this.gamesPlayed,
+      currentStreak: this.currentStreak,
       achievementsUnlocked: this.achievements.length,
       averageScore: this.gamesPlayed > 0 ? Math.floor(this.totalDistance / this.gamesPlayed / 10) : 0
     };
+  }
+
+  /**
+   * Update streak based on local calendar day
+   * @param {Date} date - Date to evaluate
+   */
+  updateStreak(date) {
+    const todayKey = this.getDateKey(date);
+    if (!this.lastPlayDate) {
+      this.currentStreak = 1;
+      this.lastPlayDate = todayKey;
+      return this.currentStreak;
+    }
+
+    if (this.lastPlayDate === todayKey) {
+      return this.currentStreak;
+    }
+
+    const yesterday = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1);
+    const yesterdayKey = this.getDateKey(yesterday);
+
+    if (this.lastPlayDate === yesterdayKey) {
+      this.currentStreak += 1;
+    } else {
+      this.currentStreak = 1;
+    }
+
+    this.lastPlayDate = todayKey;
+    return this.currentStreak;
+  }
+
+  /**
+   * Add coins to balance and lifetime total
+   * @param {number} amount - Coins to add
+   */
+  addCoins(amount) {
+    if (amount <= 0) return;
+    this.totalCoins += amount;
+    this.lifetimeCoins += amount;
+  }
+
+  getDateKey(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   /**
@@ -223,6 +288,23 @@ export class PlayerProfile {
   }
 
   /**
+   * Ensure cosmetic selections remain valid after theme updates
+   */
+  normalizeCosmetics() {
+    if (!Array.isArray(this.ownedCosmetics) || this.ownedCosmetics.length === 0) {
+      this.ownedCosmetics = [DEFAULT_COSMETIC_ID];
+    }
+
+    if (!this.ownedCosmetics.includes(DEFAULT_COSMETIC_ID)) {
+      this.ownedCosmetics.push(DEFAULT_COSMETIC_ID);
+    }
+
+    if (!getCosmeticById(this.selectedCosmetic)) {
+      this.selectedCosmetic = DEFAULT_COSMETIC_ID;
+    }
+  }
+
+  /**
    * Check if cosmetic is owned
    * @param {string} cosmeticId - Cosmetic identifier
    * @returns {boolean} True if owned
@@ -240,10 +322,13 @@ export class PlayerProfile {
     this.totalJumps = 0;
     this.totalObstacles = 0;
     this.totalCoins = 0;
+    this.lifetimeCoins = 0;
     this.gamesPlayed = 0;
+    this.currentStreak = 0;
+    this.lastPlayDate = null;
     this.achievements = [];
-    this.ownedCosmetics = ['businessman-default'];
-    this.selectedCosmetic = 'businessman-default';
+    this.ownedCosmetics = [DEFAULT_COSMETIC_ID];
+    this.selectedCosmetic = DEFAULT_COSMETIC_ID;
     this.createdAt = new Date().toISOString();
     this.lastPlayedAt = null;
     await this.save();
