@@ -68,6 +68,7 @@ class Game {
     this.gameState = 'MENU'; // MENU, READY, PLAYING, GAME_OVER, PAUSED
     this.lastTime = 0;
     this.scrollSpeed = CONFIG.PLAYER.RUN_SPEED;
+    this.handleKeyDown = null;
   }
 
   /**
@@ -230,6 +231,13 @@ class Game {
     // Create HUD (should be on top)
     this.hud = new HUD();
     this.hud.create(stage);
+    this.hud.onPauseClick = () => {
+      if (this.gameState === 'PLAYING') {
+        this.pause();
+      } else if (this.gameState === 'PAUSED') {
+        this.resume();
+      }
+    };
 
     // Create menu system (should be on top of HUD)
     this.menu = new Menu();
@@ -273,6 +281,27 @@ class Game {
       }
     };
 
+    this.menu.onPauseResume = () => {
+      this.resume();
+    };
+
+    this.menu.onPauseSettings = () => {
+      this.menu.hidePause();
+      this.settingsScreen.show();
+    };
+
+    this.menu.onPauseShop = () => {
+      this.menu.hidePause();
+      if (this.profile) {
+        this.shop.show(this.profile);
+      }
+    };
+
+    this.menu.onPauseQuit = () => {
+      this.restartGame();
+      this.startGame();
+    };
+
     // Wire up settings callback to audio
     this.settingsScreen.onSettingChanged = (key, value) => {
       if (key === 'soundEnabled' && this.audio) {
@@ -281,6 +310,12 @@ class Game {
         this.audio.musicEnabled = value;
       }
       // reducedMotion would be used by particle system and camera shake
+    };
+
+    this.settingsScreen.onClose = () => {
+      if (this.gameState === 'PAUSED') {
+        this.menu.showPause();
+      }
     };
 
     // Wire up shop callbacks
@@ -296,6 +331,12 @@ class Game {
       console.log('Selected:', cosmetic.name);
       // Apply cosmetic to player
       this.applyCosmetic(cosmetic);
+    };
+
+    this.shop.onClose = () => {
+      if (this.gameState === 'PAUSED') {
+        this.menu.showPause();
+      }
     };
 
     // Create session tracker
@@ -333,8 +374,6 @@ class Game {
         }
       } else if (this.gameState === 'GAME_OVER') {
         this.restartGame();
-      } else if (this.gameState === 'PAUSED') {
-        this.resume();
       }
     });
 
@@ -344,6 +383,19 @@ class Game {
         this.player.cancelJump();
       }
     });
+
+    this.handleKeyDown = (event) => {
+      const key = event.key.toLowerCase();
+      if (key === 'p' || key === 'escape') {
+        event.preventDefault();
+        if (this.gameState === 'PLAYING') {
+          this.pause();
+        } else if (this.gameState === 'PAUSED') {
+          this.resume();
+        }
+      }
+    };
+    window.addEventListener('keydown', this.handleKeyDown);
   }
 
   /**
@@ -780,6 +832,11 @@ class Game {
 
     if (this.renderer) {
       this.renderer.destroy();
+    }
+
+    if (this.handleKeyDown) {
+      window.removeEventListener('keydown', this.handleKeyDown);
+      this.handleKeyDown = null;
     }
 
     console.log('Game destroyed');

@@ -13,8 +13,10 @@ export class HUD {
     this.scoreText = null;
     this.levelText = null;
     this.coinText = null;
+    this.pauseButton = null;
     this.gameOverText = null;
     this.instructionText = null;
+    this.onPauseClick = null;
   }
 
   /**
@@ -62,9 +64,35 @@ export class HUD {
       align: 'right'
     });
     this.coinText.anchor.set(1, 0);
-    this.coinText.x = CONFIG.CANVAS.WIDTH - 20;
+    this.coinText.x = CONFIG.CANVAS.WIDTH - 70;
     this.coinText.y = 20;
     this.container.addChild(this.coinText);
+
+    // Pause button (top right corner)
+    this.pauseButton = new PIXI.Container();
+    this.pauseButton.x = CONFIG.CANVAS.WIDTH - 30;
+    this.pauseButton.y = 28;
+    const pauseBg = new PIXI.Graphics();
+    pauseBg.beginFill(0x263238, 0.8);
+    pauseBg.drawCircle(0, 0, 16);
+    pauseBg.endFill();
+    const pauseText = new PIXI.Text('II', {
+      fontFamily: 'Arial',
+      fontSize: 14,
+      fontWeight: 'bold',
+      fill: 0xFFFFFF,
+    });
+    pauseText.anchor.set(0.5);
+    this.pauseButton.addChild(pauseBg);
+    this.pauseButton.addChild(pauseText);
+    this.pauseButton.interactive = true;
+    this.pauseButton.buttonMode = true;
+    this.pauseButton.on('pointerdown', () => {
+      if (this.onPauseClick) {
+        this.onPauseClick();
+      }
+    });
+    this.container.addChild(this.pauseButton);
 
     // Instruction text (center)
     this.instructionText = new PIXI.Text('Click or Tap to Jump!', {

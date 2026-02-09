@@ -21,6 +21,10 @@ export class Menu {
     this.onStatisticsClick = null;
     this.onSettingsClick = null;
     this.onShopClick = null;
+    this.onPauseResume = null;
+    this.onPauseSettings = null;
+    this.onPauseShop = null;
+    this.onPauseQuit = null;
   }
 
   /**
@@ -283,10 +287,63 @@ export class Menu {
     });
     pauseText.anchor.set(0.5);
     pauseText.x = CONFIG.CANVAS.WIDTH / 2;
-    pauseText.y = CONFIG.CANVAS.HEIGHT / 2;
+    pauseText.y = CONFIG.CANVAS.HEIGHT / 2 - 110;
     this.pauseScreen.addChild(pauseText);
 
+    const resumeButton = this.createPauseButton('RESUME', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT / 2 - 30, 0x4CAF50);
+    resumeButton.on('pointerdown', () => {
+      if (this.onPauseResume) this.onPauseResume();
+    });
+    this.pauseScreen.addChild(resumeButton);
+
+    const settingsButton = this.createPauseButton('SETTINGS', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT / 2 + 40, 0x607D8B);
+    settingsButton.on('pointerdown', () => {
+      if (this.onPauseSettings) this.onPauseSettings();
+    });
+    this.pauseScreen.addChild(settingsButton);
+
+    const shopButton = this.createPauseButton('SHOP', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT / 2 + 110, 0x9C27B0);
+    shopButton.on('pointerdown', () => {
+      if (this.onPauseShop) this.onPauseShop();
+    });
+    this.pauseScreen.addChild(shopButton);
+
+    const quitButton = this.createPauseButton('RESTART RUN', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT / 2 + 180, 0xE53935);
+    quitButton.on('pointerdown', () => {
+      if (this.onPauseQuit) this.onPauseQuit();
+    });
+    this.pauseScreen.addChild(quitButton);
+
     this.container.addChild(this.pauseScreen);
+  }
+
+  /**
+   * Create a pause menu button
+   */
+  createPauseButton(text, x, y, color) {
+    const button = new PIXI.Container();
+    button.x = x;
+    button.y = y;
+
+    const bg = new PIXI.Graphics();
+    bg.beginFill(color);
+    bg.drawRoundedRect(-140, -24, 280, 48, 12);
+    bg.endFill();
+    button.addChild(bg);
+
+    const label = new PIXI.Text(text, {
+      fontFamily: 'Arial',
+      fontSize: 20,
+      fontWeight: 'bold',
+      fill: 0xFFFFFF,
+    });
+    label.anchor.set(0.5);
+    button.addChild(label);
+
+    button.interactive = true;
+    button.buttonMode = true;
+
+    return button;
   }
 
   /**
@@ -332,6 +389,12 @@ export class Menu {
     this.startScreen.visible = false;
     this.gameOverScreen.visible = false;
     this.pauseScreen.visible = true;
+  }
+
+  hidePause() {
+    if (this.pauseScreen) {
+      this.pauseScreen.visible = false;
+    }
   }
 
   /**

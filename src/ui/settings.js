@@ -11,6 +11,7 @@ export class SettingsScreen {
   constructor() {
     this.container = null;
     this.isVisible = false;
+    this.onClose = null;
     this.settings = {
       soundEnabled: true,
       musicEnabled: true,
@@ -67,7 +68,12 @@ export class SettingsScreen {
     const closeBtn = this.createButton('BACK', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT - 80, 0x666666);
     closeBtn.interactive = true;
     closeBtn.buttonMode = true;
-    closeBtn.on('pointerdown', () => this.hide());
+    closeBtn.on('pointerdown', () => {
+      this.hide();
+      if (this.onClose) {
+        this.onClose();
+      }
+    });
     this.container.addChild(closeBtn);
   }
 

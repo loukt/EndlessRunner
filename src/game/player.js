@@ -26,6 +26,10 @@ export class Player {
       eyes: 0x2E2E2E
     };
     this.collisionEffect = null;
+    this.frames = [];
+    this.frameIndex = 0;
+    this.frameTimer = 0;
+    this.frameDuration = 0.08;
   }
 
   /**
@@ -47,29 +51,53 @@ export class Player {
     if (this.sprite) {
       const oldX = this.sprite.x;
       const oldY = this.sprite.y;
-      this.sprite.destroy();
-      this.sprite = null;
-      
-      // Create new sprite and restore position
-      this.createSpriteGraphics();
+      this.destroyFrames();
+      this.frames = this.generateRunFrames();
+      this.sprite.texture = this.frames[0];
       this.sprite.x = oldX;
       this.sprite.y = oldY;
       this.sprite.tint = 0xFFFFFF;
     } else {
       // First time creation
-      this.createSpriteGraphics();
+      this.frames = this.generateRunFrames();
+      this.sprite = new PIXI.Sprite(this.frames[0]);
+      this.stage.addChild(this.sprite);
       this.sprite.x = CONFIG.PLAYER.START_X;
       this.sprite.y = CONFIG.PHYSICS.GROUND_Y - 60;
       this.sprite.tint = 0xFFFFFF;
     }
+
+    this.frameIndex = 0;
+    this.frameTimer = 0;
   }
 
   /**
    * Create the sprite graphics
    */
-  createSpriteGraphics() {
+  generateRunFrames() {
+    const frames = [];
+    for (let i = 0; i < 4; i++) {
+      const graphics = this.createFrameGraphics(i);
+      const texture = this.renderer.generateTexture(graphics);
+      graphics.destroy();
+      frames.push(texture);
+    }
+    return frames;
+  }
+
+  createFrameGraphics(frameIndex) {
     // Create cat sprite using graphics
     const graphics = new PIXI.Graphics();
+
+    const frontLegOffset = [0, 2, 0, -2];
+    const backLegOffset = [2, 0, -2, 0];
+    const pawOffset = [0, -1, 0, 1];
+    const tailOffset = [0, 2, 0, -2];
+
+    const frontY = 46 + frontLegOffset[frameIndex];
+    const backY = 46 + backLegOffset[frameIndex];
+    const pawY = 56 + pawOffset[frameIndex];
+    const tailY = 32 + tailOffset[frameIndex];
 
     // Body
     graphics.beginFill(this.colors.fur);
@@ -108,19 +136,23 @@ export class Player {
     graphics.drawRect(13, 20, 14, 3);
     graphics.endFill();
 
-    // Legs and paws
+    // Legs and paws (four-legged run)
     graphics.beginFill(this.colors.fur);
-    graphics.drawRect(12, 46, 5, 10);
-    graphics.drawRect(23, 46, 5, 10);
+    graphics.drawRect(11, backY, 4, 10);
+    graphics.drawRect(18, frontY, 4, 10);
+    graphics.drawRect(23, backY, 4, 10);
+    graphics.drawRect(26, frontY, 4, 10);
     graphics.endFill();
     graphics.beginFill(0x2B2B2B);
-    graphics.drawRect(11, 56, 7, 4);
-    graphics.drawRect(22, 56, 7, 4);
+    graphics.drawRect(10, pawY, 6, 4);
+    graphics.drawRect(17, pawY, 6, 4);
+    graphics.drawRect(22, pawY, 6, 4);
+    graphics.drawRect(25, pawY, 6, 4);
     graphics.endFill();
 
     // Tail
     graphics.beginFill(this.colors.fur);
-    graphics.drawRoundedRect(30, 32, 8, 16, 4);
+    graphics.drawRoundedRect(30, tailY, 8, 16, 4);
     graphics.endFill();
 
     // Stripe
@@ -128,12 +160,7 @@ export class Player {
     graphics.drawRect(12, 30, 16, 3);
     graphics.endFill();
 
-    // Create sprite from graphics (PixiJS v7 API)
-    const texture = this.renderer.generateTexture(graphics);
-    this.sprite = new PIXI.Sprite(texture);
-    
-    // Add to stage
-    this.stage.addChild(this.sprite);
+    return graphics;
   }
 
   /**
@@ -213,7 +240,32 @@ export class Player {
       this.wasInAir = true;
     }
 
+    this.updateAnimation(deltaTime);
+
     return justLanded;
+  }
+
+  updateAnimation(deltaTime) {
+    if (!this.frames.length || this.isJumping) {
+      this.setFrame(0);
+      return;
+    }
+
+    this.frameTimer += deltaTime;
+    if (this.frameTimer >= this.frameDuration) {
+      this.frameTimer -= this.frameDuration;
+      this.frameIndex = (this.frameIndex + 1) % this.frames.length;
+      this.sprite.texture = this.frames[this.frameIndex];
+    }
+  }
+
+  setFrame(index) {
+    if (!this.frames.length) return;
+    const safeIndex = Math.max(0, Math.min(index, this.frames.length - 1));
+    if (this.frameIndex !== safeIndex) {
+      this.frameIndex = safeIndex;
+      this.sprite.texture = this.frames[this.frameIndex];
+    }
   }
 
   /**
@@ -283,10 +335,21 @@ export class Player {
    * Clean up player resources
    */
   destroy() {
+    this.destroyFrames();
     if (this.sprite) {
       this.sprite.destroy();
       this.sprite = null;
     }
+  }
+
+  destroyFrames() {
+    if (!this.frames.length) return;
+    for (const texture of this.frames) {
+      if (texture) {
+        texture.destroy(true);
+      }
+    }
+    this.frames = [];
   }
 }
 
