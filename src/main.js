@@ -31,6 +31,7 @@ import { Shop } from './ui/shop.js';
 import { DailyChallengeManager } from './data/challenges.js';
 import { ChallengeTracker } from './game/challenge-tracker.js';
 import { ChallengesUI } from './ui/challenges.js';
+import { BackgroundManager } from './game/background.js';
 
 /**
  * Main application class
@@ -57,6 +58,7 @@ class Game {
     this.settingsScreen = null;
     this.coinManager = null;
     this.shop = null;
+    this.background = null;
     this.challengeManager = null;
     this.challengeTracker = null;
     this.challengeUI = null;
@@ -191,7 +193,8 @@ class Game {
     const stage = this.renderer.getStage();
     const pixiRenderer = this.renderer.app.renderer;
 
-    this.drawBackground(stage);
+    this.background = new BackgroundManager();
+    this.background.create(stage);
 
     // Create difficulty manager
     this.difficultyManager = new DifficultyManager();
@@ -207,6 +210,10 @@ class Game {
     // Create coin manager
     this.coinManager = new CoinManager();
     this.coinManager.create(stage, pixiRenderer);
+
+    if (this.background) {
+      this.background.attachOverlay(stage);
+    }
 
     // Create scoring
     this.scoring = new Scoring();
@@ -244,6 +251,11 @@ class Game {
     // Create settings screen (on top of everything)
     this.settingsScreen = new SettingsScreen();
     this.settingsScreen.create(stage);
+    if (this.audio) {
+      const settings = this.settingsScreen.getSettings();
+      this.audio.soundEnabled = settings.soundEnabled;
+      this.audio.musicEnabled = settings.musicEnabled;
+    }
 
     // Create shop screen (on top of everything)
     this.shop = new Shop();
@@ -335,59 +347,6 @@ class Game {
     console.log('Game objects created');
   }
 
-  drawBackground(stage) {
-    const skyline = new PIXI.Container();
-
-    const sky = new PIXI.Graphics();
-    sky.beginFill(0x78B5D9);
-    sky.drawRect(0, 0, CONFIG.CANVAS.WIDTH, CONFIG.PHYSICS.GROUND_Y);
-    sky.endFill();
-    skyline.addChild(sky);
-
-    this.drawBuildingLayer(skyline, 140, 6, 0x6C7A89, 0.15);
-    this.drawBuildingLayer(skyline, 90, 10, 0x455A64, 0.25);
-
-    const ground = new PIXI.Graphics();
-    ground.beginFill(0x8B7355);
-    ground.drawRect(0, CONFIG.PHYSICS.GROUND_Y, CONFIG.CANVAS.WIDTH, CONFIG.CANVAS.HEIGHT - CONFIG.PHYSICS.GROUND_Y);
-    ground.endFill();
-    ground.lineStyle(3, 0x654321, 1);
-    ground.moveTo(0, CONFIG.PHYSICS.GROUND_Y);
-    ground.lineTo(CONFIG.CANVAS.WIDTH, CONFIG.PHYSICS.GROUND_Y);
-    skyline.addChild(ground);
-
-    stage.addChild(skyline);
-  }
-
-  drawBuildingLayer(container, baseHeight, count, color, windowChance) {
-    let x = 0;
-    const maxWidth = CONFIG.CANVAS.WIDTH;
-
-    for (let i = 0; i < count && x < maxWidth; i++) {
-      const width = 60 + Math.floor(Math.random() * 80);
-      const height = baseHeight + Math.floor(Math.random() * 120);
-      const y = CONFIG.PHYSICS.GROUND_Y - height;
-
-      const building = new PIXI.Graphics();
-      building.beginFill(color);
-      building.drawRect(x, y, width, height);
-      building.endFill();
-
-      for (let wy = y + 12; wy < y + height - 10; wy += 16) {
-        for (let wx = x + 10; wx < x + width - 10; wx += 18) {
-          if (Math.random() < windowChance) {
-            building.beginFill(0xFFD54F, 0.8);
-            building.drawRect(wx, wy, 8, 10);
-            building.endFill();
-          }
-        }
-      }
-
-      container.addChild(building);
-      x += width - 8;
-    }
-  }
-
   /**
    * Setup input handlers
    */
@@ -431,6 +390,9 @@ class Game {
     });
 
     this.handleKeyDown = (event) => {
+      if (this.audio) {
+        this.audio.resume();
+      }
       const key = event.key.toLowerCase();
       if (key === 'p' || key === 'escape') {
         event.preventDefault();
@@ -680,6 +642,10 @@ class Game {
       const speedMultiplier = this.difficultyManager.getSpeedMultiplier();
       this.scrollSpeed = CONFIG.PLAYER.RUN_SPEED * speedMultiplier;
 
+      if (this.background) {
+        this.background.update(deltaTime, this.scrollSpeed, this.difficultyManager.level);
+      }
+
       // Update obstacles
       const newObstaclesPassed = this.obstacleManager.update(deltaTime, this.scrollSpeed);
       if (newObstaclesPassed > 0) {
@@ -718,6 +684,10 @@ class Game {
     // Update celebration animation
     if (this.celebration) {
       this.celebration.update(deltaTime);
+    }
+
+    if (this.background && this.gameState !== 'PLAYING') {
+      this.background.update(deltaTime, 0, this.difficultyManager.level);
     }
 
     // Update particles (always, even when not playing for fade out)

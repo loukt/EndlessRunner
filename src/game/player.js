@@ -30,6 +30,10 @@ export class Player {
     this.frameIndex = 0;
     this.frameTimer = 0;
     this.frameDuration = 0.08;
+    this.jumpTexture = null;
+    this.landTexture = null;
+    this.landTimer = 0;
+    this.landDuration = 0.12;
   }
 
   /**
@@ -53,6 +57,8 @@ export class Player {
       const oldY = this.sprite.y;
       this.destroyFrames();
       this.frames = this.generateRunFrames();
+      this.jumpTexture = this.createJumpTexture();
+      this.landTexture = this.createLandTexture();
       this.sprite.texture = this.frames[0];
       this.sprite.x = oldX;
       this.sprite.y = oldY;
@@ -60,6 +66,8 @@ export class Player {
     } else {
       // First time creation
       this.frames = this.generateRunFrames();
+      this.jumpTexture = this.createJumpTexture();
+      this.landTexture = this.createLandTexture();
       this.sprite = new PIXI.Sprite(this.frames[0]);
       this.stage.addChild(this.sprite);
       this.sprite.x = CONFIG.PLAYER.START_X;
@@ -69,6 +77,7 @@ export class Player {
 
     this.frameIndex = 0;
     this.frameTimer = 0;
+    this.landTimer = 0;
   }
 
   /**
@@ -89,78 +98,122 @@ export class Player {
     // Create cat sprite using graphics
     const graphics = new PIXI.Graphics();
 
-    const frontLegOffset = [0, 2, 0, -2];
-    const backLegOffset = [2, 0, -2, 0];
-    const pawOffset = [0, -1, 0, 1];
-    const tailOffset = [0, 2, 0, -2];
+    const frontLegOffset = [0, 3, 0, -3];
+    const backLegOffset = [3, 0, -3, 0];
+    const pawOffset = [0, -2, 0, 2];
+    const tailOffset = [0, 3, 0, -3];
 
-    const frontY = 46 + frontLegOffset[frameIndex];
-    const backY = 46 + backLegOffset[frameIndex];
-    const pawY = 56 + pawOffset[frameIndex];
-    const tailY = 32 + tailOffset[frameIndex];
+    const frontY = 42 + frontLegOffset[frameIndex];
+    const backY = 44 + backLegOffset[frameIndex];
+    const pawY = 52 + pawOffset[frameIndex];
+    const tailY = 28 + tailOffset[frameIndex];
 
-    // Body
-    graphics.beginFill(this.colors.fur);
-    graphics.drawEllipse(20, 34, 14, 16);
-    graphics.endFill();
-
-    // Belly
-    graphics.beginFill(this.colors.belly);
-    graphics.drawEllipse(20, 38, 8, 10);
-    graphics.endFill();
-
-    // Head
-    graphics.beginFill(this.colors.fur);
-    graphics.drawCircle(20, 14, 9);
-    graphics.endFill();
-
-    // Ears
-    graphics.beginFill(this.colors.fur);
-    graphics.drawPolygon([12, 8, 16, 2, 18, 10]);
-    graphics.drawPolygon([22, 10, 24, 2, 28, 8]);
-    graphics.endFill();
-
-    // Face patch/stripe
-    graphics.beginFill(this.colors.patch);
-    graphics.drawEllipse(16, 14, 3, 4);
-    graphics.endFill();
-
-    // Eyes
-    graphics.beginFill(this.colors.eyes);
-    graphics.drawCircle(17, 14, 1.5);
-    graphics.drawCircle(23, 14, 1.5);
-    graphics.endFill();
-
-    // Collar
-    graphics.beginFill(this.colors.collar);
-    graphics.drawRect(13, 20, 14, 3);
-    graphics.endFill();
+    this.drawBody(graphics);
 
     // Legs and paws (four-legged run)
-    graphics.beginFill(this.colors.fur);
-    graphics.drawRect(11, backY, 4, 10);
-    graphics.drawRect(18, frontY, 4, 10);
-    graphics.drawRect(23, backY, 4, 10);
-    graphics.drawRect(26, frontY, 4, 10);
-    graphics.endFill();
-    graphics.beginFill(0x2B2B2B);
-    graphics.drawRect(10, pawY, 6, 4);
-    graphics.drawRect(17, pawY, 6, 4);
-    graphics.drawRect(22, pawY, 6, 4);
-    graphics.drawRect(25, pawY, 6, 4);
-    graphics.endFill();
+    this.drawLegs(graphics, frontY, backY, pawY);
 
     // Tail
-    graphics.beginFill(this.colors.fur);
-    graphics.drawRoundedRect(30, tailY, 8, 16, 4);
-    graphics.endFill();
+    this.drawTail(graphics, tailY, 0x4);
 
-    // Stripe
-    graphics.beginFill(this.colors.patch);
-    graphics.drawRect(12, 30, 16, 3);
-    graphics.endFill();
+    this.drawStripes(graphics);
 
     return graphics;
+  }
+
+  createJumpTexture() {
+    const graphics = new PIXI.Graphics();
+    this.drawBody(graphics, -2);
+    this.drawTail(graphics, 24, 6);
+    this.drawLegs(graphics, 48, 48, 54, true);
+    this.drawStripes(graphics);
+    const texture = this.renderer.generateTexture(graphics);
+    graphics.destroy();
+    return texture;
+  }
+
+  createLandTexture() {
+    const graphics = new PIXI.Graphics();
+    this.drawBody(graphics, 2);
+    this.drawTail(graphics, 30, -2);
+    this.drawLegs(graphics, 46, 46, 56, false, true);
+    this.drawStripes(graphics);
+    const texture = this.renderer.generateTexture(graphics);
+    graphics.destroy();
+    return texture;
+  }
+
+  drawBody(graphics, bodyOffsetY = 0) {
+    const bodyY = 34 + bodyOffsetY;
+
+    graphics.beginFill(this.colors.fur);
+    graphics.drawEllipse(20, bodyY, 18, 12);
+    graphics.endFill();
+
+    graphics.beginFill(this.colors.belly);
+    graphics.drawEllipse(22, bodyY + 3, 9, 6);
+    graphics.endFill();
+
+    graphics.beginFill(this.colors.fur);
+    graphics.drawCircle(12, bodyY - 16, 9);
+    graphics.endFill();
+
+    graphics.beginFill(this.colors.fur);
+    graphics.drawPolygon([4, bodyY - 20, 8, bodyY - 28, 10, bodyY - 18]);
+    graphics.drawPolygon([14, bodyY - 18, 16, bodyY - 28, 20, bodyY - 20]);
+    graphics.endFill();
+
+    graphics.beginFill(this.colors.patch);
+    graphics.drawEllipse(10, bodyY - 16, 3, 4);
+    graphics.endFill();
+
+    graphics.beginFill(this.colors.eyes);
+    graphics.drawCircle(10, bodyY - 16, 1.5);
+    graphics.drawCircle(15, bodyY - 16, 1.5);
+    graphics.endFill();
+
+    graphics.beginFill(this.colors.collar);
+    graphics.drawRect(6, bodyY - 8, 14, 3);
+    graphics.endFill();
+  }
+
+  drawLegs(graphics, frontY, backY, pawY, tucked = false, splayed = false) {
+    const frontOffset = tucked ? -2 : 0;
+    const backOffset = tucked ? 2 : 0;
+    const splay = splayed ? 2 : 0;
+
+    graphics.beginFill(this.colors.fur);
+    graphics.drawRect(12, backY + backOffset, 4, 9 + splay);
+    graphics.drawRect(18, frontY + frontOffset, 4, 9 + splay);
+    graphics.drawRect(24, backY + backOffset, 4, 9 + splay);
+    graphics.drawRect(28, frontY + frontOffset, 4, 9 + splay);
+    graphics.endFill();
+
+    graphics.beginFill(0x2B2B2B);
+    graphics.drawRect(11, pawY, 6, 4);
+    graphics.drawRect(17, pawY, 6, 4);
+    graphics.drawRect(23, pawY, 6, 4);
+    graphics.drawRect(27, pawY, 6, 4);
+    graphics.endFill();
+  }
+
+  drawTail(graphics, tailY, tilt = 0) {
+    graphics.beginFill(this.colors.fur);
+    graphics.drawRoundedRect(32, tailY, 8, 16, 4);
+    graphics.endFill();
+    if (tilt !== 0) {
+      graphics.beginFill(this.colors.fur);
+      graphics.drawRoundedRect(30, tailY - 4, 8, 12, 4);
+      graphics.endFill();
+    }
+  }
+
+  drawStripes(graphics) {
+    graphics.beginFill(this.colors.patch);
+    graphics.drawRect(14, 30, 16, 3);
+    graphics.drawRect(16, 35, 14, 2);
+    graphics.drawRect(18, 40, 12, 2);
+    graphics.endFill();
   }
 
   /**
@@ -234,6 +287,7 @@ export class Player {
       // Detect landing (was in air, now on ground)
       if (this.wasInAir) {
         justLanded = true;
+        this.landTimer = this.landDuration;
         this.wasInAir = false;
       }
     } else {
@@ -246,7 +300,23 @@ export class Player {
   }
 
   updateAnimation(deltaTime) {
-    if (!this.frames.length || this.isJumping) {
+    if (!this.frames.length) {
+      return;
+    }
+
+    if (this.landTimer > 0) {
+      this.landTimer = Math.max(0, this.landTimer - deltaTime);
+      if (this.landTexture) {
+        this.sprite.texture = this.landTexture;
+        return;
+      }
+    }
+
+    if (this.isJumping || this.velocityY < 0) {
+      if (this.jumpTexture) {
+        this.sprite.texture = this.jumpTexture;
+        return;
+      }
       this.setFrame(0);
       return;
     }
@@ -343,13 +413,22 @@ export class Player {
   }
 
   destroyFrames() {
-    if (!this.frames.length) return;
-    for (const texture of this.frames) {
-      if (texture) {
-        texture.destroy(true);
+    if (this.frames.length) {
+      for (const texture of this.frames) {
+        if (texture) {
+          texture.destroy(true);
+        }
       }
+      this.frames = [];
     }
-    this.frames = [];
+    if (this.jumpTexture) {
+      this.jumpTexture.destroy(true);
+      this.jumpTexture = null;
+    }
+    if (this.landTexture) {
+      this.landTexture.destroy(true);
+      this.landTexture = null;
+    }
   }
 }
 
