@@ -1,0 +1,68 @@
+{
+  "frames": {
+    "cat_0.png": {
+      "frame": { "x": 0, "y": 0, "w": 96, "h": 96 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 96 },
+      "sourceSize": { "x": 96, "y": 96 }
+    },
+    "cat_1.png": {
+      "frame": { "x": 96, "y": 0, "w": 96, "h": 96 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 96 },
+      "sourceSize": { "x": 96, "y": 96 }
+    },
+    "cat_2.png": {
+      "frame": { "x": 192, "y": 0, "w": 96, "h": 96 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 96 },
+      "sourceSize": { "x": 96, "y": 96 }
+    },
+    "cat_3.png": {
+      "frame": { "x": 288, "y": 0, "w": 96, "h": 96 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 96 },
+      "sourceSize": { "x": 96, "y": 96 }
+    },
+    "cat_4.png": {
+      "frame": { "x": 0, "y": 96, "w": 96, "h": 96 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 96 },
+      "sourceSize": { "x": 96, "y": 96 }
+    },
+    "cat_5.png": {
+      "frame": { "x": 96, "y": 96, "w": 96, "h": 96 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 96 },
+      "sourceSize": { "x": 96, "y": 96 }
+    },
+    "cat_6.png": {
+      "frame": { "x": 192, "y": 96, "w": 96, "h": 96 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 96 },
+      "sourceSize": { "x": 96, "y": 96 }
+    },
+    "cat_7.png": {
+      "frame": { "x": 288, "y": 96, "w": 96, "h": 96 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 96 },
+      "sourceSize": { "x": 96, "y": 96 }
+    }
+  },
+  "meta": {
+    "app": "EndlessRunner",
+    "version": "1.0.0",
+    "image": "cat-spritesheet.png",
+    "format": "RGBA8888",
+    "size": { "w": 384, "h": 192 },
+    "scale": "1"
+  }
+}

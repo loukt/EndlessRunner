@@ -1,7 +1,7 @@
 /**
  * Player Module
  * 
- * Manages the player character with jump mechanics and visual representation.
+ * Manages the player character with jump mechanics and sprite-based animation.
  */
 
 import * as PIXI from 'pixi.js';
@@ -18,26 +18,16 @@ export class Player {
     this.wasInAir = false; // Track if player was in air last frame (for landing detection)
     this.renderer = null;
     this.stage = null;
-    this.colors = {
-      fur: 0xD9A05B,
-      patch: 0x8B5E3C,
-      belly: 0xF5D7B2,
-      collar: 0xCC3344,
-      eyes: 0x2E2E2E
-    };
     this.collisionEffect = null;
     this.frames = [];
     this.frameIndex = 0;
     this.frameTimer = 0;
-    this.frameDuration = 0.08;
-    this.jumpTexture = null;
-    this.landTexture = null;
+    this.frameDuration = 0.1;
+    this.jumpFrameIndex = 0; // Frame to use when jumping
+    this.landFrameIndex = 7; // Frame to use when landing
     this.landTimer = 0;
     this.landDuration = 0.12;
-
-    this.textureWidth = 48;
-    this.textureHeight = 60;
-    this.groundLocalY = 56;
+    this.spritesheetLoaded = false;
   }
 
   /**

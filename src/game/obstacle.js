@@ -197,29 +197,61 @@ export class ObstacleManager {
   drawTrashBag(graphics, config) {
     const width = config.width;
     const height = config.height;
-    const bagHeight = height - 10;
-    graphics.beginFill(0x2F2F2F);
-    graphics.drawRoundedRect(0, 8, width, bagHeight, 8);
-    graphics.endFill();
+    const centerX = width / 2;
 
-    graphics.beginFill(0x1F1F1F);
-    graphics.drawCircle(width * 0.35, 18, 6);
-    graphics.drawCircle(width * 0.7, 20, 5);
-    graphics.endFill();
-
+    // Main bag body (rounded bulbous shape)
     graphics.beginFill(0x1A1A1A);
+    graphics.drawEllipse(centerX, height * 0.6, width * 0.45, height * 0.55);
+    graphics.endFill();
+
+    // Darker shading for folds and wrinkles
+    graphics.beginFill(0x0F0F0F, 0.7);
+    graphics.drawEllipse(centerX - width * 0.15, height * 0.5, width * 0.2, height * 0.3);
+    graphics.drawEllipse(centerX + width * 0.15, height * 0.55, width * 0.18, height * 0.28);
+    graphics.endFill();
+
+    // Mid-tone wrinkles for texture
+    graphics.beginFill(0x2A2A2A, 0.5);
+    graphics.drawEllipse(centerX - width * 0.12, height * 0.65, width * 0.15, height * 0.2);
+    graphics.drawEllipse(centerX + width * 0.1, height * 0.68, width * 0.12, height * 0.18);
+    graphics.endFill();
+
+    // Twisted/gathered top
+    graphics.beginFill(0x2F2F2F);
     graphics.drawPolygon([
-      width / 2 - 6, 8,
-      width / 2 + 6, 8,
-      width / 2, 0
+      centerX - width * 0.25, height * 0.15,
+      centerX - width * 0.15, 0,
+      centerX + width * 0.15, 0,
+      centerX + width * 0.25, height * 0.15,
+      centerX + width * 0.2, height * 0.25,
+      centerX - width * 0.2, height * 0.25
     ]);
     graphics.endFill();
 
-    graphics.lineStyle(1, 0x1A1A1A, 0.8);
-    graphics.moveTo(width * 0.2, 20);
-    graphics.lineTo(width * 0.35, 32);
-    graphics.moveTo(width * 0.6, 28);
-    graphics.lineTo(width * 0.75, 40);
+    // Darker fold lines in twisted top
+    graphics.lineStyle(1, 0x0F0F0F, 0.8);
+    graphics.moveTo(centerX - width * 0.1, 0);
+    graphics.lineTo(centerX - width * 0.12, height * 0.2);
+    graphics.moveTo(centerX, 0);
+    graphics.lineTo(centerX, height * 0.22);
+    graphics.moveTo(centerX + width * 0.1, 0);
+    graphics.lineTo(centerX + width * 0.12, height * 0.2);
+
+    // Tie/twist (yellow/gold)
+    graphics.beginFill(0xFFD700);
+    graphics.drawEllipse(centerX, height * 0.18, width * 0.18, 3);
+    graphics.endFill();
+
+    // Tie knot detail
+    graphics.beginFill(0xFFC700);
+    graphics.drawCircle(centerX - width * 0.12, height * 0.16, 2);
+    graphics.drawCircle(centerX + width * 0.12, height * 0.16, 2);
+    graphics.endFill();
+
+    // Wrapped tie lines
+    graphics.lineStyle(1, 0xFFD700, 0.8);
+    graphics.drawArc(centerX - width * 0.08, height * 0.18, 5, Math.PI * 0.3, Math.PI * 0.7, false);
+    graphics.drawArc(centerX + width * 0.08, height * 0.18, 5, Math.PI * 0.3, Math.PI * 0.7, false);
   }
 
   drawPuddle(graphics, config) {
@@ -239,14 +271,32 @@ export class ObstacleManager {
   drawTrashCan(graphics, config) {
     const width = config.width;
     const height = config.height;
-    graphics.beginFill(0x6D6D6D);
-    graphics.drawRoundedRect(2, 8, width - 4, height - 8, 4);
+
+    // Handle (top)
+    graphics.beginFill(0x666666);
+    graphics.drawRoundedRect(width * 0.15, 2, width * 0.7, 6, 3);
     graphics.endFill();
-    graphics.beginFill(0x4D4D4D);
-    graphics.drawRect(0, 0, width, 8);
+
+    // Lid/Rim bar
+    graphics.beginFill(0x7A7A7A);
+    graphics.drawRect(0, 8, width, 6);
     graphics.endFill();
-    graphics.beginFill(0x3C3C3C);
-    graphics.drawRect(width / 2 - 6, 2, 12, 3);
+
+    // Main container body
+    graphics.beginFill(0x808080);
+    graphics.drawRoundedRect(2, 14, width - 4, height - 14, 6);
+    graphics.endFill();
+
+    // Darker shade for depth (right side)
+    graphics.beginFill(0x6B6B6B, 0.6);
+    graphics.drawRoundedRect(width - 8, 14, 6, height - 14, 3);
+    graphics.endFill();
+
+    // Vertical grooves (3 ridges down the can)
+    graphics.beginFill(0x707070);
+    graphics.drawRoundedRect(width * 0.2 - 2, 20, 4, height - 20, 2);
+    graphics.drawRoundedRect(width * 0.5 - 2, 20, 4, height - 20, 2);
+    graphics.drawRoundedRect(width * 0.8 - 2, 20, 4, height - 20, 2);
     graphics.endFill();
   }
 

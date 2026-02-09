@@ -192,7 +192,7 @@ export class BackgroundManager {
 
     const layerWidth = CONFIG.CANVAS.WIDTH * 2;
     let x = 0;
-    while (x < layerWidth) {
+    while (x < layerWidth + 200) {
       const width = 60 + Math.floor(Math.random() * 80);
       const height = baseHeight + Math.floor(Math.random() * 120);
       const y = CONFIG.PHYSICS.GROUND_Y - height;
@@ -232,8 +232,10 @@ export class BackgroundManager {
 
     const spacing = 220;
     const layerWidth = CONFIG.CANVAS.WIDTH * 2;
+    const lampCount = Math.ceil((layerWidth + spacing) / spacing);
 
-    for (let x = 80; x < layerWidth; x += spacing) {
+    for (let i = 0; i < lampCount; i++) {
+      const x = 80 + i * spacing;
       const pole = new PIXI.Graphics();
       pole.beginFill(0x37474F);
       pole.drawRect(x, CONFIG.PHYSICS.GROUND_Y - 90, 6, 90);
