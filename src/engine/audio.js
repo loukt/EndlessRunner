@@ -16,6 +16,8 @@ export class AudioManager {
     this.sfxGain = null;
     this.musicGain = null;
     this.initialized = false;
+    this.soundEnabled = true;
+    this.musicEnabled = true;
   }
 
   /**
@@ -94,9 +96,12 @@ export class AudioManager {
    * @returns {AudioBufferSourceNode|null}
    */
   playSound(name, options = {}) {
-    if (!this.initialized || !this.sounds.has(name)) {
-      console.warn(`Sound not loaded: ${name}`);
+    if (!this.initialized || !this.soundEnabled) {
       return null;
+    }
+
+    if (!this.sounds.has(name)) {
+      return this.playSynth(name, options);
     }
 
     try {
@@ -120,6 +125,46 @@ export class AudioManager {
       return source;
     } catch (error) {
       console.error(`Failed to play sound ${name}:`, error);
+      return null;
+    }
+  }
+
+  playSynth(name, options = {}) {
+    if (!this.context || !this.sfxGain) return null;
+
+    const presets = {
+      jump: { frequency: 520, duration: 0.12, type: 'square', volume: 0.25 },
+      coin: { frequency: 880, duration: 0.08, type: 'triangle', volume: 0.2 },
+      collision: { frequency: 180, duration: 0.2, type: 'sawtooth', volume: 0.35 }
+    };
+
+    const preset = presets[name] || { frequency: 440, duration: 0.08, type: 'sine', volume: 0.2 };
+    const duration = options.duration || preset.duration;
+    const frequency = options.frequency || preset.frequency;
+    const type = options.type || preset.type;
+    const volume = typeof options.volume === 'number' ? options.volume : preset.volume;
+
+    try {
+      const oscillator = this.context.createOscillator();
+      const gainNode = this.context.createGain();
+
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, this.context.currentTime);
+
+      const now = this.context.currentTime;
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(volume, now + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(this.sfxGain);
+
+      oscillator.start(now);
+      oscillator.stop(now + duration);
+
+      return oscillator;
+    } catch (error) {
+      console.error(`Failed to play synth sound ${name}:`, error);
       return null;
     }
   }

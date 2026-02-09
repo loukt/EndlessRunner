@@ -197,23 +197,43 @@ export class ObstacleManager {
   drawTrashBag(graphics, config) {
     const width = config.width;
     const height = config.height;
+    const bagHeight = height - 10;
     graphics.beginFill(0x2F2F2F);
-    graphics.drawRoundedRect(0, 6, width, height - 6, 6);
+    graphics.drawRoundedRect(0, 8, width, bagHeight, 8);
     graphics.endFill();
+
     graphics.beginFill(0x1F1F1F);
-    graphics.drawRect(width / 2 - 4, 0, 8, 8);
+    graphics.drawCircle(width * 0.35, 18, 6);
+    graphics.drawCircle(width * 0.7, 20, 5);
     graphics.endFill();
+
+    graphics.beginFill(0x1A1A1A);
+    graphics.drawPolygon([
+      width / 2 - 6, 8,
+      width / 2 + 6, 8,
+      width / 2, 0
+    ]);
+    graphics.endFill();
+
+    graphics.lineStyle(1, 0x1A1A1A, 0.8);
+    graphics.moveTo(width * 0.2, 20);
+    graphics.lineTo(width * 0.35, 32);
+    graphics.moveTo(width * 0.6, 28);
+    graphics.lineTo(width * 0.75, 40);
   }
 
   drawPuddle(graphics, config) {
     const width = config.width;
     const height = config.height;
+    const centerY = config.height - height / 2;
     graphics.beginFill(0x4FC3F7);
-    graphics.drawEllipse(width / 2, config.height - height / 2, width / 2, height / 2);
+    graphics.drawEllipse(width / 2, centerY, width * 0.55, height / 2);
     graphics.endFill();
     graphics.beginFill(0x81D4FA, 0.8);
-    graphics.drawEllipse(width / 2 + 6, config.height - height / 2 - 2, width / 4, height / 3);
+    graphics.drawEllipse(width / 2 + 6, centerY - 1, width * 0.25, height / 3);
     graphics.endFill();
+    graphics.lineStyle(1, 0x2D9CDB, 0.6);
+    graphics.drawEllipse(width / 2, centerY, width * 0.55, height / 2);
   }
 
   drawTrashCan(graphics, config) {
@@ -269,7 +289,7 @@ export class ObstacleManager {
       case 'puddle':
         return {
           width: config.width,
-          height: Math.max(10, Math.floor(config.height / 3))
+          height: Math.max(6, Math.floor(config.height / 5))
         };
       case 'yarn':
         return {

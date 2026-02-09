@@ -191,17 +191,7 @@ class Game {
     const stage = this.renderer.getStage();
     const pixiRenderer = this.renderer.app.renderer;
 
-    // Draw ground line and fill
-    const ground = new PIXI.Graphics();
-    // Draw grass/ground area
-    ground.beginFill(0x8B7355); // Brown ground color
-    ground.drawRect(0, CONFIG.PHYSICS.GROUND_Y, CONFIG.CANVAS.WIDTH, CONFIG.CANVAS.HEIGHT - CONFIG.PHYSICS.GROUND_Y);
-    ground.endFill();
-    // Draw ground line
-    ground.lineStyle(3, 0x654321, 1); // Darker brown line
-    ground.moveTo(0, CONFIG.PHYSICS.GROUND_Y);
-    ground.lineTo(CONFIG.CANVAS.WIDTH, CONFIG.PHYSICS.GROUND_Y);
-    stage.addChild(ground);
+    this.drawBackground(stage);
 
     // Create difficulty manager
     this.difficultyManager = new DifficultyManager();
@@ -345,12 +335,68 @@ class Game {
     console.log('Game objects created');
   }
 
+  drawBackground(stage) {
+    const skyline = new PIXI.Container();
+
+    const sky = new PIXI.Graphics();
+    sky.beginFill(0x78B5D9);
+    sky.drawRect(0, 0, CONFIG.CANVAS.WIDTH, CONFIG.PHYSICS.GROUND_Y);
+    sky.endFill();
+    skyline.addChild(sky);
+
+    this.drawBuildingLayer(skyline, 140, 6, 0x6C7A89, 0.15);
+    this.drawBuildingLayer(skyline, 90, 10, 0x455A64, 0.25);
+
+    const ground = new PIXI.Graphics();
+    ground.beginFill(0x8B7355);
+    ground.drawRect(0, CONFIG.PHYSICS.GROUND_Y, CONFIG.CANVAS.WIDTH, CONFIG.CANVAS.HEIGHT - CONFIG.PHYSICS.GROUND_Y);
+    ground.endFill();
+    ground.lineStyle(3, 0x654321, 1);
+    ground.moveTo(0, CONFIG.PHYSICS.GROUND_Y);
+    ground.lineTo(CONFIG.CANVAS.WIDTH, CONFIG.PHYSICS.GROUND_Y);
+    skyline.addChild(ground);
+
+    stage.addChild(skyline);
+  }
+
+  drawBuildingLayer(container, baseHeight, count, color, windowChance) {
+    let x = 0;
+    const maxWidth = CONFIG.CANVAS.WIDTH;
+
+    for (let i = 0; i < count && x < maxWidth; i++) {
+      const width = 60 + Math.floor(Math.random() * 80);
+      const height = baseHeight + Math.floor(Math.random() * 120);
+      const y = CONFIG.PHYSICS.GROUND_Y - height;
+
+      const building = new PIXI.Graphics();
+      building.beginFill(color);
+      building.drawRect(x, y, width, height);
+      building.endFill();
+
+      for (let wy = y + 12; wy < y + height - 10; wy += 16) {
+        for (let wx = x + 10; wx < x + width - 10; wx += 18) {
+          if (Math.random() < windowChance) {
+            building.beginFill(0xFFD54F, 0.8);
+            building.drawRect(wx, wy, 8, 10);
+            building.endFill();
+          }
+        }
+      }
+
+      container.addChild(building);
+      x += width - 8;
+    }
+  }
+
   /**
    * Setup input handlers
    */
   setupInput() {
     // Handle press (start of tap/click)
     this.input.on('press', () => {
+      if (this.audio) {
+        this.audio.resume();
+      }
       if (this.gameState === 'MENU' || this.gameState === 'READY') {
         this.startGame();
       } else if (this.gameState === 'PLAYING') {
