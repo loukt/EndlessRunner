@@ -55,7 +55,7 @@ export class Menu {
     this.startScreen.addChild(bg);
 
     // Game title
-    const title = new PIXI.Text('ENDLESS RUNNER', {
+    const title = new PIXI.Text('CAT RUNNER', {
       fontFamily: 'Arial',
       fontSize: 64,
       fontWeight: 'bold',
@@ -70,7 +70,7 @@ export class Menu {
     this.startScreen.addChild(title);
 
     // Subtitle
-    const subtitle = new PIXI.Text('Tap to jump over obstacles', {
+    const subtitle = new PIXI.Text('Tap/click to jump over obstacles', {
       fontFamily: 'Arial',
       fontSize: 24,
       fill: 0xCCCCCC,
@@ -112,7 +112,8 @@ export class Menu {
     this.shopButton = this.createMenuButton('🛍️ SHOP', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT - 110, 0x9C27B0);
     this.shopButton.interactive = true;
     this.shopButton.buttonMode = true;
-    this.shopButton.on('pointerdown', () => {
+    this.shopButton.on('pointerdown', (e) => {
+      this.stopNativeEvent(e);
       if (this.onShopClick) this.onShopClick();
     });
     this.startScreen.addChild(this.shopButton);
@@ -121,7 +122,8 @@ export class Menu {
     this.statisticsButton = this.createMenuButton('📊 STATS', 100, CONFIG.CANVAS.HEIGHT - 50, 0x2196F3);
     this.statisticsButton.interactive = true;
     this.statisticsButton.buttonMode = true;
-    this.statisticsButton.on('pointerdown', () => {
+    this.statisticsButton.on('pointerdown', (e) => {
+      this.stopNativeEvent(e);
       if (this.onStatisticsClick) this.onStatisticsClick();
     });
     this.startScreen.addChild(this.statisticsButton);
@@ -130,7 +132,8 @@ export class Menu {
     this.settingsButton = this.createMenuButton('⚙️ SETTINGS', CONFIG.CANVAS.WIDTH - 100, CONFIG.CANVAS.HEIGHT - 50, 0x607D8B);
     this.settingsButton.interactive = true;
     this.settingsButton.buttonMode = true;
-    this.settingsButton.on('pointerdown', () => {
+    this.settingsButton.on('pointerdown', (e) => {
+      this.stopNativeEvent(e);
       if (this.onSettingsClick) this.onSettingsClick();
     });
     this.startScreen.addChild(this.settingsButton);
@@ -146,12 +149,6 @@ export class Menu {
     button.x = x;
     button.y = y;
 
-    const bg = new PIXI.Graphics();
-    bg.beginFill(color);
-    bg.drawRoundedRect(-80, -20, 160, 40, 10);
-    bg.endFill();
-    button.addChild(bg);
-
     const label = new PIXI.Text(text, {
       fontFamily: 'Arial',
       fontSize: 18,
@@ -159,7 +156,19 @@ export class Menu {
       fill: 0xFFFFFF,
     });
     label.anchor.set(0.5);
+
+    const padX = 22;
+    const width = Math.max(160, Math.ceil(label.width + padX * 2));
+    const height = 44;
+
+    const bg = new PIXI.Graphics();
+    bg.beginFill(color);
+    bg.drawRoundedRect(-width / 2, -height / 2, width, height, 10);
+    bg.endFill();
+    button.addChild(bg);
     button.addChild(label);
+
+    this.addButtonFeedback(button);
 
     return button;
   }
@@ -291,25 +300,29 @@ export class Menu {
     this.pauseScreen.addChild(pauseText);
 
     const resumeButton = this.createPauseButton('RESUME', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT / 2 - 30, 0x4CAF50);
-    resumeButton.on('pointerdown', () => {
+    resumeButton.on('pointerdown', (e) => {
+      this.stopNativeEvent(e);
       if (this.onPauseResume) this.onPauseResume();
     });
     this.pauseScreen.addChild(resumeButton);
 
     const settingsButton = this.createPauseButton('SETTINGS', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT / 2 + 40, 0x607D8B);
-    settingsButton.on('pointerdown', () => {
+    settingsButton.on('pointerdown', (e) => {
+      this.stopNativeEvent(e);
       if (this.onPauseSettings) this.onPauseSettings();
     });
     this.pauseScreen.addChild(settingsButton);
 
     const shopButton = this.createPauseButton('SHOP', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT / 2 + 110, 0x9C27B0);
-    shopButton.on('pointerdown', () => {
+    shopButton.on('pointerdown', (e) => {
+      this.stopNativeEvent(e);
       if (this.onPauseShop) this.onPauseShop();
     });
     this.pauseScreen.addChild(shopButton);
 
     const quitButton = this.createPauseButton('RESTART RUN', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT / 2 + 180, 0xE53935);
-    quitButton.on('pointerdown', () => {
+    quitButton.on('pointerdown', (e) => {
+      this.stopNativeEvent(e);
       if (this.onPauseQuit) this.onPauseQuit();
     });
     this.pauseScreen.addChild(quitButton);
@@ -343,7 +356,40 @@ export class Menu {
     button.interactive = true;
     button.buttonMode = true;
 
+    this.addButtonFeedback(button);
+
     return button;
+  }
+
+  stopNativeEvent(e) {
+    if (!e) return;
+    if (typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
+    }
+    const nativeEvent = e.nativeEvent;
+    if (nativeEvent && typeof nativeEvent.preventDefault === 'function') {
+      nativeEvent.preventDefault();
+    }
+    if (nativeEvent && typeof nativeEvent.stopImmediatePropagation === 'function') {
+      nativeEvent.stopImmediatePropagation();
+    }
+    if (nativeEvent && typeof nativeEvent.stopPropagation === 'function') {
+      nativeEvent.stopPropagation();
+    }
+  }
+
+  addButtonFeedback(button) {
+    if (!button || typeof button.on !== 'function') return;
+
+    const setScale = (s) => {
+      button.scale.set(s);
+    };
+
+    button.on('pointerover', () => setScale(1.03));
+    button.on('pointerout', () => setScale(1.0));
+    button.on('pointerdown', () => setScale(0.97));
+    button.on('pointerup', () => setScale(1.03));
+    button.on('pointerupoutside', () => setScale(1.0));
   }
 
   /**

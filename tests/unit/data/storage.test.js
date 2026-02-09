@@ -15,11 +15,14 @@ describe('StorageManager', () => {
   });
 
   afterEach(async () => {
-    // Clean up all stores
-    for (const storeName of Object.values(CONFIG.STORAGE.STORE_NAMES)) {
-      await storage.clear(storeName);
+    // Clean up all stores (skip if a test already destroyed the instance)
+    if (storage?.initialized) {
+      for (const storeName of Object.values(CONFIG.STORAGE.STORE_NAMES)) {
+        await storage.clear(storeName);
+      }
     }
-    storage.destroy();
+
+    storage?.destroy();
   });
 
   describe('init', () => {

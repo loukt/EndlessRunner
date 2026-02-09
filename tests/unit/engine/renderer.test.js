@@ -6,6 +6,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Renderer } from '../../../src/engine/renderer.js';
+import { CONFIG } from '../../../src/config.js';
 
 describe.skip('Renderer', () => {
   let renderer;

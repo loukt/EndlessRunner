@@ -64,12 +64,9 @@ const migrations = {
  * @param {number} newVersion - Target version
  */
 export function applyMigrations(db, oldVersion, newVersion) {
-  console.log(`Migrating database from version ${oldVersion} to ${newVersion}`);
-
   // Apply each migration in sequence
   for (let version = oldVersion + 1; version <= newVersion; version++) {
     if (migrations[version]) {
-      console.log(`Applying migration ${version}: ${migrations[version].description}`);
       migrations[version].upgrade(db);
     }
   }

@@ -5,7 +5,6 @@
  */
 
 import * as PIXI from 'pixi.js';
-import { CONFIG } from '../config.js';
 
 export class ParticleSystem {
   constructor() {

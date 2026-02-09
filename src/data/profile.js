@@ -4,7 +4,7 @@
  * Manages player profile data including high scores, achievements, and lifetime statistics.
  */
 
-import { StorageManager } from './storage.js';
+/** @typedef {import('./storage.js').StorageManager} StorageManager */
 import { getCosmeticById } from './cosmetics.js';
 
 const DEFAULT_COSMETIC_ID = 'cat-tabby';
@@ -65,13 +65,10 @@ export class PlayerProfile {
         this.lastPlayedAt = saved.lastPlayedAt;
 
         this.normalizeCosmetics();
-        
-        console.log('Profile loaded:', saved);
       } else {
         // Create new profile
         this.createdAt = new Date().toISOString();
         await this.save();
-        console.log('New profile created');
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -103,7 +100,6 @@ export class PlayerProfile {
       };
       
       await this.storage.saveProfile(data);
-      console.log('Profile saved');
     } catch (error) {
       console.error('Error saving profile:', error);
     }
@@ -116,9 +112,7 @@ export class PlayerProfile {
    */
   updateHighScore(score) {
     if (score > this.highScore) {
-      const previousBest = this.highScore;
       this.highScore = score;
-      console.log(`New high score! ${previousBest} → ${score}`);
       return true;
     }
     return false;
@@ -160,7 +154,6 @@ export class PlayerProfile {
     if (!this.achievements.includes(achievementId)) {
       this.achievements.push(achievementId);
       await this.save();
-      console.log(`Achievement unlocked: ${achievementId}`);
       return true;
     }
     return false;
@@ -249,13 +242,11 @@ export class PlayerProfile {
   async purchaseCosmetic(cosmeticId, price) {
     // Check if already owned
     if (this.ownedCosmetics.includes(cosmeticId)) {
-      console.log('Cosmetic already owned:', cosmeticId);
       return false;
     }
 
     // Check if enough coins
     if (this.totalCoins < price) {
-      console.log('Not enough coins. Have:', this.totalCoins, 'Need:', price);
       return false;
     }
 
@@ -263,8 +254,7 @@ export class PlayerProfile {
     this.totalCoins -= price;
     this.ownedCosmetics.push(cosmeticId);
     await this.save();
-    
-    console.log('Cosmetic purchased:', cosmeticId, 'Coins remaining:', this.totalCoins);
+
     return true;
   }
 
@@ -276,14 +266,12 @@ export class PlayerProfile {
   async selectCosmetic(cosmeticId) {
     // Check if owned
     if (!this.ownedCosmetics.includes(cosmeticId)) {
-      console.log('Cosmetic not owned:', cosmeticId);
       return false;
     }
 
     this.selectedCosmetic = cosmeticId;
     await this.save();
-    
-    console.log('Cosmetic selected:', cosmeticId);
+
     return true;
   }
 
@@ -332,7 +320,6 @@ export class PlayerProfile {
     this.createdAt = new Date().toISOString();
     this.lastPlayedAt = null;
     await this.save();
-    console.log('Profile reset');
   }
 }
 

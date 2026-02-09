@@ -106,6 +106,7 @@ export class HUD {
     this.instructionText.anchor.set(0.5);
     this.instructionText.x = CONFIG.CANVAS.WIDTH / 2;
     this.instructionText.y = CONFIG.CANVAS.HEIGHT / 2;
+    this.instructionText.visible = false;
     this.container.addChild(this.instructionText);
 
     // Game over text (initially hidden)
@@ -198,7 +199,12 @@ export class HUD {
     if (this.scoreText) {
       this.scoreText.text = 'Score: 0';
     }
-    this.showReady();
+    if (this.instructionText) {
+      this.instructionText.visible = false;
+    }
+    if (this.gameOverText) {
+      this.gameOverText.visible = false;
+    }
   }
 
   /**

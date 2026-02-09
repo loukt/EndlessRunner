@@ -5,7 +5,6 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { CONFIG } from '../../src/config.js';
 
 test.describe('FPS Performance', () => {
   test('should maintain 60 FPS during idle state', async ({ page }) => {
@@ -57,8 +56,6 @@ test.describe('FPS Performance', () => {
         requestAnimationFrame(measureFrame);
       });
     });
-
-    console.log('FPS Test Results:', fpsData);
 
     // Average FPS should be close to 60
     expect(fpsData.avgFPS).toBeGreaterThan(55);
@@ -135,8 +132,6 @@ test.describe('FPS Performance', () => {
       });
     });
 
-    console.log('FPS Test Results (with input):', fpsData);
-
     // Average FPS should still be close to 60 with inputs
     expect(fpsData.avgFPS).toBeGreaterThan(50);
     
@@ -190,8 +185,6 @@ test.describe('FPS Performance', () => {
         requestAnimationFrame(measureFrame);
       });
     });
-
-    console.log('Frame Time Results:', frameTimeData);
 
     // Average frame time should be close to 16.67ms (60 FPS)
     expect(frameTimeData.avgFrameTime).toBeGreaterThan(15);
@@ -255,8 +248,6 @@ test.describe('FPS Performance', () => {
         requestAnimationFrame(measureFrame);
       });
     });
-
-    console.log('FPS during resize:', fpsData);
 
     // Should maintain reasonable FPS during resize
     expect(fpsData.avgFPS).toBeGreaterThan(45);

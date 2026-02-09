@@ -2,7 +2,7 @@
  * Unit tests for Physics
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import * as Physics from '../../../src/engine/physics.js';
 import { CONFIG } from '../../../src/config.js';
 
@@ -91,7 +91,7 @@ describe('Physics', () => {
 
   describe('isOnGround', () => {
     it('should return true when object is on ground', () => {
-      const object = { y: CONFIG.PHYSICS.GROUND_Y, height: 60 };
+      const object = { y: CONFIG.PHYSICS.GROUND_Y - 60, height: 60 };
 
       expect(Physics.isOnGround(object)).toBe(true);
     });
@@ -115,7 +115,7 @@ describe('Physics', () => {
 
       Physics.clampToGround(object);
 
-      expect(object.y).toBe(CONFIG.PHYSICS.GROUND_Y);
+      expect(object.y).toBe(CONFIG.PHYSICS.GROUND_Y - 60);
     });
 
     it('should not affect object above ground', () => {
@@ -263,7 +263,7 @@ describe('Physics', () => {
     it('should simulate realistic jump physics', () => {
       const player = {
         x: 0,
-        y: CONFIG.PHYSICS.GROUND_Y,
+        y: CONFIG.PHYSICS.GROUND_Y - CONFIG.PLAYER.HEIGHT,
         velocityX: 0,
         velocityY: CONFIG.PLAYER.JUMP_VELOCITY, // -600
         height: CONFIG.PLAYER.HEIGHT
@@ -282,8 +282,8 @@ describe('Physics', () => {
       }
 
       // Should jump up (y decreases) then land back on ground
-      expect(maxHeight).toBeLessThan(CONFIG.PHYSICS.GROUND_Y);
-      expect(player.y).toBe(CONFIG.PHYSICS.GROUND_Y);
+      expect(maxHeight).toBeLessThan(CONFIG.PHYSICS.GROUND_Y - CONFIG.PLAYER.HEIGHT);
+      expect(player.y).toBe(CONFIG.PHYSICS.GROUND_Y - CONFIG.PLAYER.HEIGHT);
       expect(player.velocityY).toBe(0);
     });
 
@@ -306,7 +306,7 @@ describe('Physics', () => {
       }
 
       // Should land on ground
-      expect(object.y).toBe(CONFIG.PHYSICS.GROUND_Y);
+      expect(object.y).toBe(CONFIG.PHYSICS.GROUND_Y - 50);
       expect(object.velocityY).toBe(0);
     });
   });

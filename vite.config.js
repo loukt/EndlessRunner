@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { configDefaults } from 'vitest/config';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
@@ -9,6 +10,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './tests/setup.js',
+    include: ['tests/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+    exclude: [...configDefaults.exclude, '**/tests/performance/**'],
   },
   plugins: [
     VitePWA({

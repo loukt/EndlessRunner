@@ -30,9 +30,9 @@ export class Celebration {
   /**
    * Play new high score celebration
    * @param {number} newScore - New high score value
-   * @param {number} previousBest - Previous best score
+   * @param {number} _previousBest - Previous best score
    */
-  playNewHighScore(newScore, previousBest) {
+  playNewHighScore(newScore, _previousBest) {
     this.clear();
     this.isPlaying = true;
     this.duration = 0;
@@ -73,8 +73,6 @@ export class Celebration {
 
     // Create explosion of confetti particles
     this.createConfetti(CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT / 2, 50);
-
-    console.log(`Celebration: New high score ${newScore} (prev: ${previousBest})`);
   }
 
   /**
@@ -136,8 +134,6 @@ export class Celebration {
 
     // Create star burst particles
     this.createStarBurst(CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT / 2, 30);
-
-    console.log(`Celebration: Achievement unlocked - ${achievement.name}`);
   }
 
   /**

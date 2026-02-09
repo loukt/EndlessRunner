@@ -11,7 +11,6 @@ import { InputManager } from './engine/input.js';
 import { AudioManager } from './engine/audio.js';
 import { StorageManager } from './data/storage.js';
 import * as Physics from './engine/physics.js';
-import * as PIXI from 'pixi.js';
 import { Player } from './game/player.js';
 import { ObstacleManager } from './game/obstacle.js';
 import { Scoring } from './game/scoring.js';
@@ -78,8 +77,6 @@ class Game {
    */
   async init() {
     try {
-      console.log('Initializing game systems...');
-
       // Get canvas container
       const container = document.getElementById('game-container');
       if (!container) {
@@ -89,22 +86,18 @@ class Game {
       // Initialize renderer
       this.renderer = new Renderer();
       await this.renderer.init(container);
-      console.log('✓ Renderer initialized');
 
       // Initialize input manager
       this.input = new InputManager();
       this.input.init(this.renderer.getRenderer().view);
-      console.log('✓ Input manager initialized');
 
       // Initialize audio manager
       this.audio = new AudioManager();
       this.audio.init();
-      console.log('✓ Audio manager initialized');
 
       // Initialize storage
       this.storage = new StorageManager();
       await this.storage.init();
-      console.log('✓ Storage initialized');
 
       // Load or create player profile
       await this.loadProfile();
@@ -130,8 +123,6 @@ class Game {
 
       // Start game loop
       this.start();
-
-      console.log('Game initialized successfully!');
     } catch (error) {
       console.error('Failed to initialize game:', error);
       this.showError(error.message);
@@ -158,12 +149,6 @@ class Game {
           this.applyCosmetic(cosmetic);
         }
       }
-      
-      console.log('Profile and achievements initialized');
-      console.log(`High Score: ${this.profile.highScore}`);
-      console.log(`Games Played: ${this.profile.gamesPlayed}`);
-      console.log(`Achievements: ${this.profile.achievements.length}`);
-      console.log(`Selected Cosmetic: ${this.profile.selectedCosmetic}`);
     } catch (error) {
       console.error('Failed to load profile:', error);
     }
@@ -268,17 +253,20 @@ class Game {
     // Wire up menu callbacks
     this.menu.onStatisticsClick = () => {
       if (this.profile && this.achievementManager) {
+        this.menu.hide();
         const stats = this.profile.getStats();
         this.statisticsScreen.show(stats, this.achievementManager, this.profile.achievements);
       }
     };
 
     this.menu.onSettingsClick = () => {
+      this.menu.hide();
       this.settingsScreen.show();
     };
 
     this.menu.onShopClick = () => {
       if (this.profile) {
+        this.menu.hide();
         this.shop.show(this.profile);
       }
     };
@@ -317,12 +305,13 @@ class Game {
     this.settingsScreen.onClose = () => {
       if (this.gameState === 'PAUSED') {
         this.menu.showPause();
+      } else if (this.gameState === 'MENU') {
+        this.menu.showStartScreen();
       }
     };
 
     // Wire up shop callbacks
-    this.shop.onPurchase = (cosmetic) => {
-      console.log('Purchased:', cosmetic.name);
+    this.shop.onPurchase = (_cosmetic) => {
       // Play purchase sound if available
       if (this.audio) {
         this.audio.playSound('coin');
@@ -330,7 +319,6 @@ class Game {
     };
 
     this.shop.onSelect = (cosmetic) => {
-      console.log('Selected:', cosmetic.name);
       // Apply cosmetic to player
       this.applyCosmetic(cosmetic);
     };
@@ -338,13 +326,19 @@ class Game {
     this.shop.onClose = () => {
       if (this.gameState === 'PAUSED') {
         this.menu.showPause();
+      } else if (this.gameState === 'MENU') {
+        this.menu.showStartScreen();
+      }
+    };
+
+    this.statisticsScreen.onClose = () => {
+      if (this.gameState === 'MENU') {
+        this.menu.showStartScreen();
       }
     };
 
     // Create session tracker
     this.session = new GameSession();
-
-    console.log('Game objects created');
   }
 
   /**
@@ -356,7 +350,13 @@ class Game {
       if (this.audio) {
         this.audio.resume();
       }
-      if (this.gameState === 'MENU' || this.gameState === 'READY') {
+
+      const isOverlayOpen =
+        (this.settingsScreen && this.settingsScreen.isVisible) ||
+        (this.shop && this.shop.isVisible) ||
+        (this.statisticsScreen && this.statisticsScreen.isVisible);
+
+      if ((this.gameState === 'MENU' || this.gameState === 'READY') && !isOverlayOpen) {
         this.startGame();
       } else if (this.gameState === 'PLAYING') {
         this.player.jump();
@@ -437,7 +437,6 @@ class Game {
     if (this.challengeUI) {
       this.challengeUI.hide();
     }
-    console.log('Game started! Session:', this.session.sessionId);
   }
 
   /**
@@ -462,7 +461,6 @@ class Game {
     this.menu.showStartScreen();
     this.gameState = 'MENU';
     this.refreshChallenge();
-    console.log('Game restarted - ready for new session');
   }
 
   /**
@@ -507,7 +505,6 @@ class Game {
     
     // Check for high score celebration
     if (result.isNewHighScore) {
-      console.log('New high score!', finalScore);
       // Trigger celebration after a short delay
       setTimeout(() => {
         this.celebration.playNewHighScore(finalScore, result.previousBest);
@@ -528,7 +525,6 @@ class Game {
     for (const achievementId of newAchievements) {
       await this.profile.unlockAchievement(achievementId);
       const achievement = this.achievementManager.getAchievement(achievementId);
-      console.log(`Achievement unlocked: ${achievement.name}`);
 
       if (achievement) {
         unlockedAchievements.push(achievement);
@@ -548,10 +544,6 @@ class Game {
     
     // Show game over menu
     this.menu.showGameOver(finalScore, result.isNewHighScore, this.coinsCollectedThisRun, unlockedAchievements);
-    
-    // Log session data
-    console.log('Game over. Session data:', sessionData);
-    console.log('Profile stats:', profileStats);
   }
 
   /**
@@ -563,7 +555,6 @@ class Game {
     this.isPaused = true;
     this.gameState = 'PAUSED';
     this.menu.showPause();
-    console.log('Game paused');
   }
 
   /**
@@ -575,7 +566,6 @@ class Game {
     this.isPaused = false;
     this.gameState = 'PLAYING';
     this.menu.hide();
-    console.log('Game resumed');
   }
 
   /**
@@ -854,8 +844,6 @@ class Game {
       window.removeEventListener('keydown', this.handleKeyDown);
       this.handleKeyDown = null;
     }
-
-    console.log('Game destroyed');
   }
 
   /**
@@ -865,7 +853,6 @@ class Game {
   applyCosmetic(cosmetic) {
     if (this.player && cosmetic && cosmetic.colors) {
       this.player.applyColors(cosmetic.colors);
-      console.log('Applied cosmetic:', cosmetic.name);
     }
   }
 

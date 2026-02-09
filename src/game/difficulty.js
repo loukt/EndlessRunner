@@ -44,7 +44,7 @@ export class DifficultyManager {
     // Gradually reduce spacing based on level (10 levels)
     // Level 1: MAX_SPACING (700px)
     // Level 10: MIN_SPACING (300px) - Increased minimum for safety
-    const safeMinSpacing = 300; // Ensure always passable
+    const safeMinSpacing = Math.max(300, MIN_SPACING); // Ensure always passable
     const spacingRange = MAX_SPACING - safeMinSpacing;
     const levelProgress = (this.level - 1) / 9; // 0 to 1
     

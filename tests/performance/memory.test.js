@@ -30,12 +30,9 @@ test.describe('Memory Performance', () => {
     });
 
     if (memoryData.supported === false) {
-      console.log('Memory API not supported, skipping test');
-      test.skip();
+      test.skip(true, 'Memory API not supported');
       return;
     }
-
-    console.log('Initial Memory Usage:', memoryData);
 
     // Initial memory should be under 150MB
     expect(memoryData.usedMB).toBeLessThan(CONFIG.PERFORMANCE.MAX_MEMORY_MB);
@@ -105,12 +102,9 @@ test.describe('Memory Performance', () => {
     });
 
     if (memoryData.supported === false) {
-      console.log('Memory API not supported, skipping test');
-      test.skip();
+      test.skip(true, 'Memory API not supported');
       return;
     }
-
-    console.log('Memory Usage Over Time:', memoryData);
 
     // Maximum memory should stay under 150MB
     expect(memoryData.maxMemory).toBeLessThan(CONFIG.PERFORMANCE.MAX_MEMORY_MB);
@@ -172,12 +166,9 @@ test.describe('Memory Performance', () => {
     });
 
     if (memoryData.supported === false) {
-      console.log('Memory API not supported, skipping test');
-      test.skip();
+      test.skip(true, 'Memory API not supported');
       return;
     }
-
-    console.log('Memory Cleanup Results:', memoryData);
 
     // All measurements should stay under limit
     expect(memoryData.beforeCleanup).toBeLessThan(CONFIG.PERFORMANCE.MAX_MEMORY_MB);
@@ -246,12 +237,9 @@ test.describe('Memory Performance', () => {
     });
 
     if (memoryData.supported === false) {
-      console.log('Memory API not supported, skipping test');
-      test.skip();
+      test.skip(true, 'Memory API not supported');
       return;
     }
-
-    console.log('Multi-Session Memory Results:', memoryData);
 
     // Average growth per session should be minimal
     expect(memoryData.avgGrowth).toBeLessThan(10);
@@ -260,7 +248,7 @@ test.describe('Memory Performance', () => {
     expect(memoryData.totalGrowth).toBeLessThan(30);
 
     // No session should exceed memory limit
-    memoryData.sessions.forEach((session, index) => {
+    memoryData.sessions.forEach((session) => {
       expect(session.endMemory).toBeLessThan(CONFIG.PERFORMANCE.MAX_MEMORY_MB);
     });
   });
@@ -284,7 +272,7 @@ test.describe('Memory Performance', () => {
       const images = [];
       for (let i = 0; i < 10; i++) {
         const img = new Image();
-        img.src = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==`;
+        img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
         images.push(img);
         await new Promise(resolve => {
           img.onload = resolve;
@@ -311,12 +299,9 @@ test.describe('Memory Performance', () => {
     });
 
     if (memoryData.supported === false) {
-      console.log('Memory API not supported, skipping test');
-      test.skip();
+      test.skip(true, 'Memory API not supported');
       return;
     }
-
-    console.log('Texture Loading Memory Results:', memoryData);
 
     // All measurements should stay under limit
     expect(memoryData.beforeLoad).toBeLessThan(CONFIG.PERFORMANCE.MAX_MEMORY_MB);

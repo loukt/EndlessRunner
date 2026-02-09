@@ -7,10 +7,17 @@
 
 export class InputManager {
   constructor() {
-    this.listeners = new Map();
+    this.canvas = null;
+    this.listeners = {};
     this.isPressed = false;
+    this.pressStartTime = 0;
     this.lastTapTime = 0;
     this.doubleTapThreshold = 300; // ms
+    this.tapThreshold = 200; // ms
+
+    this.handlePressBound = null;
+    this.handleReleaseBound = null;
+    this.handleContextMenuBound = null;
   }
 
   /**
@@ -18,22 +25,29 @@ export class InputManager {
    * @param {HTMLElement} element - Element to attach listeners to (usually canvas)
    */
   init(element) {
-    if (!element) {
-      throw new Error('Element is required for InputManager initialization');
+    if (!element || typeof element.addEventListener !== 'function') {
+      throw new Error('Invalid canvas');
     }
 
-    this.element = element;
+    this.canvas = element;
+    if (!this.listeners || typeof this.listeners !== 'object' || Array.isArray(this.listeners)) {
+      this.listeners = {};
+    }
 
-    // Mouse events
-    this.element.addEventListener('mousedown', this.handlePress.bind(this));
-    this.element.addEventListener('mouseup', this.handleRelease.bind(this));
-    
-    // Touch events
-    this.element.addEventListener('touchstart', this.handlePress.bind(this), { passive: true });
-    this.element.addEventListener('touchend', this.handleRelease.bind(this), { passive: true });
-    
+    this.handlePressBound = this.handlePress.bind(this);
+    this.handleReleaseBound = this.handleRelease.bind(this);
+    this.handleContextMenuBound = (e) => e.preventDefault();
+
+    // Press starts on the canvas
+    this.canvas.addEventListener('mousedown', this.handlePressBound);
+    this.canvas.addEventListener('touchstart', this.handlePressBound, { passive: false });
+
+    // Release can happen outside the canvas
+    document.addEventListener('mouseup', this.handleReleaseBound);
+    document.addEventListener('touchend', this.handleReleaseBound, { passive: false });
+
     // Prevent context menu on long press
-    this.element.addEventListener('contextmenu', e => e.preventDefault());
+    this.canvas.addEventListener('contextmenu', this.handleContextMenuBound);
   }
 
   /**
@@ -41,23 +55,25 @@ export class InputManager {
    * @param {Event} event
    */
   handlePress(event) {
-    event.preventDefault();
-    
-    if (this.isPressed) return; // Prevent multiple simultaneous presses
-    
+    if (event && event.defaultPrevented) {
+      return;
+    }
+
+    if (event && typeof event.preventDefault === 'function') {
+      event.preventDefault();
+    }
+
+    if (this.isPressed) return;
     this.isPressed = true;
+
     const now = Date.now();
-    
-    // Check for double tap
-    const isDoubleTap = (now - this.lastTapTime) < this.doubleTapThreshold;
+    const isDoubleTap = now - this.lastTapTime < this.doubleTapThreshold;
     this.lastTapTime = now;
+    this.pressStartTime = now;
+    this.pendingDoubleTap = isDoubleTap;
 
-    // Get tap position
     const position = this.getInputPosition(event);
-
-    // Emit tap event
-    this.emit('tap', { position, isDoubleTap });
-    this.emit('press', { position });
+    this.emit('press', { x: position.x, y: position.y });
   }
 
   /**
@@ -68,9 +84,29 @@ export class InputManager {
     if (!this.isPressed) return;
     
     this.isPressed = false;
-    
+
+    const shouldIgnore = !!(event && event.defaultPrevented);
+
+    const now = Date.now();
+    const duration = now - (this.pressStartTime || now);
     const position = this.getInputPosition(event);
-    this.emit('release', { position });
+
+    if (shouldIgnore) {
+      this.pendingDoubleTap = false;
+      return;
+    }
+
+    this.emit('release', { x: position.x, y: position.y });
+
+    // Tap is a quick press+release
+    if (duration <= this.tapThreshold) {
+      this.emit('tap', { x: position.x, y: position.y });
+      if (this.pendingDoubleTap) {
+        this.emit('doubletap', { x: position.x, y: position.y });
+      }
+    }
+
+    this.pendingDoubleTap = false;
   }
 
   /**
@@ -79,7 +115,7 @@ export class InputManager {
    * @returns {{x: number, y: number}}
    */
   getInputPosition(event) {
-    const rect = this.element.getBoundingClientRect();
+    const rect = this.canvas.getBoundingClientRect();
     
     let clientX, clientY;
     
@@ -109,10 +145,10 @@ export class InputManager {
    * @param {Function} callback - Callback function
    */
   on(eventType, callback) {
-    if (!this.listeners.has(eventType)) {
-      this.listeners.set(eventType, []);
+    if (!this.listeners[eventType]) {
+      this.listeners[eventType] = [];
     }
-    this.listeners.get(eventType).push(callback);
+    this.listeners[eventType].push(callback);
   }
 
   /**
@@ -121,9 +157,9 @@ export class InputManager {
    * @param {Function} callback
    */
   off(eventType, callback) {
-    if (!this.listeners.has(eventType)) return;
-    
-    const callbacks = this.listeners.get(eventType);
+    const callbacks = this.listeners[eventType];
+    if (!callbacks) return;
+
     const index = callbacks.indexOf(callback);
     if (index > -1) {
       callbacks.splice(index, 1);
@@ -136,26 +172,29 @@ export class InputManager {
    * @param {Object} data
    */
   emit(eventType, data) {
-    if (!this.listeners.has(eventType)) return;
-    
-    const callbacks = this.listeners.get(eventType);
-    callbacks.forEach(callback => callback(data));
+    const callbacks = this.listeners[eventType];
+    if (!callbacks) return;
+    callbacks.forEach((callback) => callback(data));
   }
 
   /**
    * Clean up event listeners
    */
   destroy() {
-    if (this.element) {
-      this.element.removeEventListener('mousedown', this.handlePress);
-      this.element.removeEventListener('mouseup', this.handleRelease);
-      this.element.removeEventListener('touchstart', this.handlePress);
-      this.element.removeEventListener('touchend', this.handleRelease);
-      this.element.removeEventListener('contextmenu', e => e.preventDefault());
+    if (this.canvas && this.handlePressBound && this.handleReleaseBound) {
+      this.canvas.removeEventListener('mousedown', this.handlePressBound);
+      this.canvas.removeEventListener('touchstart', this.handlePressBound);
+      this.canvas.removeEventListener('contextmenu', this.handleContextMenuBound);
+
+      document.removeEventListener('mouseup', this.handleReleaseBound);
+      document.removeEventListener('touchend', this.handleReleaseBound);
     }
-    
-    this.listeners.clear();
-    this.element = null;
+
+    this.listeners = {};
+    this.canvas = null;
+    this.handlePressBound = null;
+    this.handleReleaseBound = null;
+    this.handleContextMenuBound = null;
   }
 }
 

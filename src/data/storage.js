@@ -11,6 +11,7 @@ export class StorageManager {
   constructor() {
     this.db = null;
     this.useIndexedDB = true;
+    this.useLocalStorage = false;
     this.initialized = false;
   }
 
@@ -28,10 +29,12 @@ export class StorageManager {
       // Try IndexedDB first
       await this.initIndexedDB();
       this.useIndexedDB = true;
+      this.useLocalStorage = false;
       this.initialized = true;
     } catch (error) {
       console.warn('IndexedDB not available, falling back to localStorage:', error);
       this.useIndexedDB = false;
+      this.useLocalStorage = true;
       this.initialized = true;
     }
   }
@@ -42,17 +45,40 @@ export class StorageManager {
    */
   initIndexedDB() {
     return new Promise((resolve, reject) => {
-      if (!window.indexedDB) {
+      if (!window.indexedDB || typeof window.indexedDB.open !== 'function') {
         reject(new Error('IndexedDB not supported'));
         return;
       }
 
-      const request = indexedDB.open(CONFIG.STORAGE.DB_NAME, CONFIG.STORAGE.DB_VERSION);
+      // In some test environments, IndexedDB exists but never resolves.
+      // Use a short timeout to fall back to localStorage rather than hanging the suite.
+      const timeoutMs = 500;
+      let settled = false;
+      const timeoutId = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        reject(new Error('IndexedDB init timeout'));
+      }, timeoutMs);
 
-      request.onerror = () => reject(request.error);
+      const settleOnce = (fn) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        fn();
+      };
+
+      let request;
+      try {
+        request = window.indexedDB.open(CONFIG.STORAGE.DB_NAME, CONFIG.STORAGE.DB_VERSION);
+      } catch (error) {
+        settleOnce(() => reject(error));
+        return;
+      }
+
+      request.onerror = () => settleOnce(() => reject(request.error));
       request.onsuccess = () => {
         this.db = request.result;
-        resolve();
+        settleOnce(() => resolve());
       };
 
       request.onupgradeneeded = (event) => {
@@ -98,6 +124,11 @@ export class StorageManager {
   async save(storeName, data) {
     if (!this.initialized) {
       throw new Error('StorageManager not initialized');
+    }
+
+    this.validateStoreName(storeName);
+    if (!data || typeof data.id === 'undefined' || data.id === null || data.id === '') {
+      throw new Error('Data must have an id');
     }
 
     if (this.useIndexedDB) {
@@ -151,6 +182,8 @@ export class StorageManager {
       throw new Error('StorageManager not initialized');
     }
 
+    this.validateStoreName(storeName);
+
     if (this.useIndexedDB) {
       return this.loadIndexedDB(storeName, id);
     } else {
@@ -201,6 +234,8 @@ export class StorageManager {
     if (!this.initialized) {
       throw new Error('StorageManager not initialized');
     }
+
+    this.validateStoreName(storeName);
 
     if (this.useIndexedDB) {
       return this.loadAllIndexedDB(storeName);
@@ -263,6 +298,8 @@ export class StorageManager {
       throw new Error('StorageManager not initialized');
     }
 
+    this.validateStoreName(storeName);
+
     if (this.useIndexedDB) {
       return this.deleteIndexedDB(storeName, id);
     } else {
@@ -312,6 +349,8 @@ export class StorageManager {
     if (!this.initialized) {
       throw new Error('StorageManager not initialized');
     }
+
+    this.validateStoreName(storeName);
 
     if (this.useIndexedDB) {
       return this.clearIndexedDB(storeName);
@@ -369,6 +408,13 @@ export class StorageManager {
       this.db = null;
     }
     this.initialized = false;
+  }
+
+  validateStoreName(storeName) {
+    const valid = Object.values(CONFIG.STORAGE.STORE_NAMES).includes(storeName);
+    if (!valid) {
+      throw new Error(`Invalid store name: ${storeName}`);
+    }
   }
 }
 

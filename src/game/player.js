@@ -364,7 +364,6 @@ export class Player {
     if (colors) {
       this.colors = { ...this.colors, ...colors };
       this.createCharacter();
-      console.log('Applied colors to player:', colors);
     }
   }
 
