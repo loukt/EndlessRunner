@@ -385,10 +385,10 @@ export class Menu {
       button.scale.set(s);
     };
 
-    button.on('pointerover', () => setScale(1.03));
+    button.on('pointerover', () => setScale(1.05));
     button.on('pointerout', () => setScale(1.0));
-    button.on('pointerdown', () => setScale(0.97));
-    button.on('pointerup', () => setScale(1.03));
+    button.on('pointerdown', () => setScale(0.95));
+    button.on('pointerup', () => setScale(1.05));
     button.on('pointerupoutside', () => setScale(1.0));
   }
 

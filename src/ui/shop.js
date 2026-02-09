@@ -41,15 +41,15 @@ export class Shop {
     // Title
     const title = new PIXI.Text('COSMETICS SHOP', {
       fontFamily: 'Arial',
-      fontSize: 42,
+      fontSize: 48,
       fontWeight: 'bold',
       fill: 0xFFD700,
       stroke: 0x000000,
-      strokeThickness: 4,
+      strokeThickness: 5,
     });
     title.anchor.set(0.5, 0);
     title.x = CONFIG.CANVAS.WIDTH / 2;
-    title.y = 20;
+    title.y = 40;
     this.container.addChild(title);
 
     // Coin balance display
@@ -62,17 +62,17 @@ export class Shop {
     });
     this.coinBalanceText.anchor.set(0.5, 0);
     this.coinBalanceText.x = CONFIG.CANVAS.WIDTH / 2;
-    this.coinBalanceText.y = 75;
+    this.coinBalanceText.y = 100;
     this.container.addChild(this.coinBalanceText);
 
     // Items container (scrollable area)
     this.itemsContainer = new PIXI.Container();
     this.itemsContainer.x = 20;
-    this.itemsContainer.y = 120;
+    this.itemsContainer.y = 145;
     this.container.addChild(this.itemsContainer);
 
     // Close button
-    const closeBtn = this.createButton('BACK', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT - 50, 0x666666);
+    const closeBtn = this.createButton('BACK', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT - 70, 0x666666, 200, 50);
     closeBtn.interactive = true;
     closeBtn.buttonMode = true;
     closeBtn.on('pointerdown', (e) => {
@@ -212,6 +212,7 @@ export class Shop {
     if ((isOwned && !isSelected) || (!isOwned && canAfford && cosmetic.price > 0)) {
       button.interactive = true;
       button.buttonMode = true;
+      this.addButtonFeedback(button);
       button.on('pointerdown', async (e) => {
         this.stopNativeEvent(e);
         if (isOwned && !isSelected) {
@@ -310,10 +311,10 @@ export class Shop {
   addButtonFeedback(button) {
     if (!button || typeof button.on !== 'function') return;
     const setScale = (s) => button.scale.set(s);
-    button.on('pointerover', () => setScale(1.03));
+    button.on('pointerover', () => setScale(1.05));
     button.on('pointerout', () => setScale(1.0));
-    button.on('pointerdown', () => setScale(0.97));
-    button.on('pointerup', () => setScale(1.03));
+    button.on('pointerdown', () => setScale(0.95));
+    button.on('pointerup', () => setScale(1.05));
     button.on('pointerupoutside', () => setScale(1.0));
   }
 

@@ -43,23 +43,23 @@ export class StatisticsScreen {
     });
     title.anchor.set(0.5, 0);
     title.x = CONFIG.CANVAS.WIDTH / 2;
-    title.y = 30;
+    title.y = 40;
     this.container.addChild(title);
 
     // Stats container
     this.statsContainer = new PIXI.Container();
     this.statsContainer.x = 50;
-    this.statsContainer.y = 100;
+    this.statsContainer.y = 110;
     this.container.addChild(this.statsContainer);
 
     // Achievements container
     this.achievementsContainer = new PIXI.Container();
     this.achievementsContainer.x = 50;
-    this.achievementsContainer.y = 320;
+    this.achievementsContainer.y = 330;
     this.container.addChild(this.achievementsContainer);
 
     // Close button
-    const closeBtn = this.createButton('BACK', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT - 60, 0x666666);
+    const closeBtn = this.createButton('BACK', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT - 70, 0x666666);
     closeBtn.interactive = true;
     closeBtn.buttonMode = true;
     closeBtn.on('pointerdown', (e) => {
@@ -81,12 +81,6 @@ export class StatisticsScreen {
     button.x = x;
     button.y = y;
 
-    const bg = new PIXI.Graphics();
-    bg.beginFill(color);
-    bg.drawRoundedRect(-100, -25, 200, 50, 10);
-    bg.endFill();
-    button.addChild(bg);
-
     const label = new PIXI.Text(text, {
       fontFamily: 'Arial',
       fontSize: 24,
@@ -94,6 +88,16 @@ export class StatisticsScreen {
       fill: 0xFFFFFF,
     });
     label.anchor.set(0.5);
+
+    const padX = 34;
+    const width = Math.max(200, Math.ceil(label.width + padX * 2));
+    const height = 50;
+
+    const bg = new PIXI.Graphics();
+    bg.beginFill(color);
+    bg.drawRoundedRect(-width / 2, -height / 2, width, height, 10);
+    bg.endFill();
+    button.addChild(bg);
     button.addChild(label);
 
     return button;
@@ -206,10 +210,10 @@ export class StatisticsScreen {
   addButtonFeedback(button) {
     if (!button || typeof button.on !== 'function') return;
     const setScale = (s) => button.scale.set(s);
-    button.on('pointerover', () => setScale(1.03));
+    button.on('pointerover', () => setScale(1.05));
     button.on('pointerout', () => setScale(1.0));
-    button.on('pointerdown', () => setScale(0.97));
-    button.on('pointerup', () => setScale(1.03));
+    button.on('pointerdown', () => setScale(0.95));
+    button.on('pointerup', () => setScale(1.05));
     button.on('pointerupoutside', () => setScale(1.0));
   }
 

@@ -51,13 +51,13 @@ export class SettingsScreen {
     });
     title.anchor.set(0.5, 0);
     title.x = CONFIG.CANVAS.WIDTH / 2;
-    title.y = 50;
+    title.y = 40;
     this.container.addChild(title);
 
     // Settings options container
     this.optionsContainer = new PIXI.Container();
     this.optionsContainer.x = CONFIG.CANVAS.WIDTH / 2;
-    this.optionsContainer.y = 150;
+    this.optionsContainer.y = 160;
     this.container.addChild(this.optionsContainer);
 
     // Create toggle options
@@ -66,7 +66,7 @@ export class SettingsScreen {
     this.createToggleOption('♿ Reduced Motion', 'reducedMotion', 160);
 
     // Close button
-    const closeBtn = this.createButton('BACK', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT - 80, 0x666666);
+    const closeBtn = this.createButton('BACK', CONFIG.CANVAS.WIDTH / 2, CONFIG.CANVAS.HEIGHT - 70, 0x666666);
     closeBtn.interactive = true;
     closeBtn.buttonMode = true;
     closeBtn.on('pointerdown', (e) => {
@@ -116,12 +116,25 @@ export class SettingsScreen {
     
     drawToggle(this.settings[settingKey]);
 
-    toggleBtn.on('pointerdown', () => {
-      // Note: toggleBtn receives a PIXI event; stop propagation at the native layer if present.
+    toggleBtn.on('pointerover', () => {
+      toggleBtn.alpha = 1.08;
+    });
+    toggleBtn.on('pointerout', () => {
+      toggleBtn.alpha = 1.0;
+    });
+    toggleBtn.on('pointerdown', (e) => {
+      this.stopNativeEvent(e);
+      toggleBtn.alpha = 0.92;
       this.settings[settingKey] = !this.settings[settingKey];
       drawToggle(this.settings[settingKey]);
       this.saveSettings();
       this.onSettingChanged(settingKey, this.settings[settingKey]);
+    });
+    toggleBtn.on('pointerup', () => {
+      toggleBtn.alpha = 1.08;
+    });
+    toggleBtn.on('pointerupoutside', () => {
+      toggleBtn.alpha = 1.0;
     });
 
     option.addChild(toggleBtn);
