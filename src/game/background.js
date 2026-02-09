@@ -61,9 +61,18 @@ export class BackgroundManager {
     const nightFactor = cycle.nightFactor;
 
     for (const layer of this.layers) {
-      layer.container.x -= scrollSpeed * deltaTime * layer.speed;
+      const dx = scrollSpeed * deltaTime * layer.speed;
+
+      layer.container.x -= dx;
       if (layer.container.x <= -layer.width) {
         layer.container.x += layer.width;
+      }
+
+      if (layer.overlayContainer) {
+        layer.overlayContainer.x -= dx;
+        if (layer.overlayContainer.x <= -layer.width) {
+          layer.overlayContainer.x += layer.width;
+        }
       }
     }
 
@@ -248,7 +257,7 @@ export class BackgroundManager {
       this.lampPosts.push({ light });
     }
 
-    return { container, width: layerWidth, speed };
+    return { container, overlayContainer: overlayLights, width: layerWidth, speed };
   }
 
   createCelestialBody(color, radius) {
