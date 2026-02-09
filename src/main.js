@@ -103,7 +103,7 @@ class Game {
       await this.loadProfile();
 
       // Create game objects
-      this.createGameObjects();
+      await this.createGameObjects();
 
       // Initialize daily challenges
       await this.initChallenges();
@@ -174,7 +174,7 @@ class Game {
   /**
    * Create game objects
    */
-  createGameObjects() {
+  async createGameObjects() {
     const stage = this.renderer.getStage();
     const pixiRenderer = this.renderer.app.renderer;
 
@@ -186,7 +186,7 @@ class Game {
 
     // Create player
     this.player = new Player();
-    this.player.create(stage, pixiRenderer);
+    await this.player.create(stage, pixiRenderer);
 
     // Create obstacle manager with difficulty manager
     this.obstacleManager = new ObstacleManager(this.difficultyManager);
