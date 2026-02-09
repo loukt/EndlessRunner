@@ -34,6 +34,10 @@ export class Player {
     this.landTexture = null;
     this.landTimer = 0;
     this.landDuration = 0.12;
+
+    this.textureWidth = 48;
+    this.textureHeight = 60;
+    this.groundLocalY = 56;
   }
 
   /**
@@ -87,7 +91,7 @@ export class Player {
     const frames = [];
     for (let i = 0; i < 4; i++) {
       const graphics = this.createFrameGraphics(i);
-      const texture = this.renderer.generateTexture(graphics);
+      const texture = this.generateFixedTexture(graphics);
       graphics.destroy();
       frames.push(texture);
     }
@@ -95,124 +99,260 @@ export class Player {
   }
 
   createFrameGraphics(frameIndex) {
-    // Create cat sprite using graphics
     const graphics = new PIXI.Graphics();
+    const poses = [
+      // Frame 0: stretch
+      {
+        bodyBob: 0,
+        headBob: 0,
+        tailLift: 1,
+        frontA: { dx: 10, knee: 8 },
+        frontB: { dx: -6, knee: 10 },
+        backA: { dx: -10, knee: 10 },
+        backB: { dx: 6, knee: 8 }
+      },
+      // Frame 1: gather
+      {
+        bodyBob: 1,
+        headBob: 1,
+        tailLift: 0,
+        frontA: { dx: 2, knee: 12 },
+        frontB: { dx: -2, knee: 12 },
+        backA: { dx: -2, knee: 12 },
+        backB: { dx: 2, knee: 12 }
+      },
+      // Frame 2: stretch (swap)
+      {
+        bodyBob: 0,
+        headBob: 0,
+        tailLift: 1,
+        frontA: { dx: -6, knee: 10 },
+        frontB: { dx: 10, knee: 8 },
+        backA: { dx: 6, knee: 8 },
+        backB: { dx: -10, knee: 10 }
+      },
+      // Frame 3: gather
+      {
+        bodyBob: 1,
+        headBob: 1,
+        tailLift: 0,
+        frontA: { dx: -2, knee: 12 },
+        frontB: { dx: 2, knee: 12 },
+        backA: { dx: 2, knee: 12 },
+        backB: { dx: -2, knee: 12 }
+      }
+    ];
 
-    const frontLegOffset = [0, 3, 0, -3];
-    const backLegOffset = [3, 0, -3, 0];
-    const pawOffset = [0, -2, 0, 2];
-    const tailOffset = [0, 3, 0, -3];
-
-    const frontY = 42 + frontLegOffset[frameIndex];
-    const backY = 44 + backLegOffset[frameIndex];
-    const pawY = 52 + pawOffset[frameIndex];
-    const tailY = 28 + tailOffset[frameIndex];
-
-    this.drawBody(graphics);
-
-    // Legs and paws (four-legged run)
-    this.drawLegs(graphics, frontY, backY, pawY);
-
-    // Tail
-    this.drawTail(graphics, tailY, 0x4);
-
-    this.drawStripes(graphics);
-
+    this.drawCat(graphics, poses[frameIndex % poses.length]);
     return graphics;
   }
 
   createJumpTexture() {
     const graphics = new PIXI.Graphics();
-    this.drawBody(graphics, -2);
-    this.drawTail(graphics, 24, 6);
-    this.drawLegs(graphics, 48, 48, 54, true);
-    this.drawStripes(graphics);
-    const texture = this.renderer.generateTexture(graphics);
+    // Jump: stretched body, tucked legs
+    this.drawCat(graphics, {
+      bodyBob: -1,
+      headBob: -1,
+      tailLift: 2,
+      frontA: { dx: 6, knee: 16, tucked: true },
+      frontB: { dx: 2, knee: 16, tucked: true },
+      backA: { dx: -6, knee: 16, tucked: true },
+      backB: { dx: -2, knee: 16, tucked: true }
+    });
+    const texture = this.generateFixedTexture(graphics);
     graphics.destroy();
     return texture;
   }
 
   createLandTexture() {
     const graphics = new PIXI.Graphics();
-    this.drawBody(graphics, 2);
-    this.drawTail(graphics, 30, -2);
-    this.drawLegs(graphics, 46, 46, 56, false, true);
-    this.drawStripes(graphics);
-    const texture = this.renderer.generateTexture(graphics);
+    // Land: crouched, legs splayed and absorbing impact
+    this.drawCat(graphics, {
+      bodyBob: 3,
+      headBob: 2,
+      tailLift: 0,
+      frontA: { dx: 5, knee: 14, splayed: true },
+      frontB: { dx: 0, knee: 14, splayed: true },
+      backA: { dx: -5, knee: 14, splayed: true },
+      backB: { dx: 0, knee: 14, splayed: true }
+    });
+    const texture = this.generateFixedTexture(graphics);
     graphics.destroy();
     return texture;
   }
 
-  drawBody(graphics, bodyOffsetY = 0) {
-    const bodyY = 34 + bodyOffsetY;
+  generateFixedTexture(graphics) {
+    const region = new PIXI.Rectangle(0, 0, this.textureWidth, this.textureHeight);
+    return this.renderer.generateTexture(graphics, { region, resolution: 1 });
+  }
 
+  drawCat(graphics, pose) {
+    const groundY = this.groundLocalY;
+    const bodyCenterX = 23;
+    const bodyCenterY = 34 + (pose.bodyBob || 0);
+    const bodyRx = 18;
+    const bodyRy = 10;
+
+    // Tail first (behind body)
+    this.drawTail(graphics, {
+      baseX: bodyCenterX - 16,
+      baseY: bodyCenterY - 2,
+      lift: pose.tailLift || 0
+    });
+
+    // Body
     graphics.beginFill(this.colors.fur);
-    graphics.drawEllipse(20, bodyY, 18, 12);
+    graphics.drawEllipse(bodyCenterX, bodyCenterY, bodyRx, bodyRy);
     graphics.endFill();
 
-    graphics.beginFill(this.colors.belly);
-    graphics.drawEllipse(22, bodyY + 3, 9, 6);
+    // Belly hint
+    graphics.beginFill(this.colors.belly, 0.9);
+    graphics.drawEllipse(bodyCenterX + 3, bodyCenterY + 3, 9, 5);
     graphics.endFill();
 
+    // Head (front/right)
+    const headX = bodyCenterX + 18;
+    const headY = bodyCenterY - 12 + (pose.headBob || 0);
     graphics.beginFill(this.colors.fur);
-    graphics.drawCircle(12, bodyY - 16, 9);
+    graphics.drawCircle(headX, headY, 8);
     graphics.endFill();
 
+    // Muzzle
     graphics.beginFill(this.colors.fur);
-    graphics.drawPolygon([4, bodyY - 20, 8, bodyY - 28, 10, bodyY - 18]);
-    graphics.drawPolygon([14, bodyY - 18, 16, bodyY - 28, 20, bodyY - 20]);
+    graphics.drawEllipse(headX + 7, headY + 2, 5, 3);
     graphics.endFill();
 
-    graphics.beginFill(this.colors.patch);
-    graphics.drawEllipse(10, bodyY - 16, 3, 4);
+    // Ears
+    graphics.beginFill(this.colors.fur);
+    graphics.drawPolygon([
+      headX - 4,
+      headY - 6,
+      headX - 2,
+      headY - 14,
+      headX + 1,
+      headY - 7
+    ]);
+    graphics.drawPolygon([
+      headX + 1,
+      headY - 6,
+      headX + 3,
+      headY - 14,
+      headX + 6,
+      headY - 7
+    ]);
     graphics.endFill();
 
+    // Eyes
     graphics.beginFill(this.colors.eyes);
-    graphics.drawCircle(10, bodyY - 16, 1.5);
-    graphics.drawCircle(15, bodyY - 16, 1.5);
+    graphics.drawCircle(headX + 2, headY - 1, 1.3);
+    graphics.drawCircle(headX + 5, headY - 1, 1.3);
     graphics.endFill();
 
+    // Collar
     graphics.beginFill(this.colors.collar);
-    graphics.drawRect(6, bodyY - 8, 14, 3);
+    graphics.drawRoundedRect(headX - 9, headY + 6, 14, 3, 1);
+    graphics.endFill();
+
+    // Legs (stroke-style for more organic silhouette)
+    const shoulderX = bodyCenterX + 9;
+    const hipX = bodyCenterX - 6;
+    const legTopY = bodyCenterY + 4;
+
+    // Far legs first (slightly darker)
+    this.drawLeg(graphics, {
+      topX: hipX - 1,
+      topY: legTopY,
+      footX: hipX + (pose.backB?.dx || 0) - 1,
+      footY: groundY,
+      kneeDrop: pose.backB?.knee || 12,
+      tucked: !!pose.backB?.tucked,
+      splayed: !!pose.backB?.splayed,
+      color: this.colors.patch
+    });
+    this.drawLeg(graphics, {
+      topX: shoulderX - 1,
+      topY: legTopY - 1,
+      footX: shoulderX + (pose.frontB?.dx || 0) - 1,
+      footY: groundY,
+      kneeDrop: pose.frontB?.knee || 12,
+      tucked: !!pose.frontB?.tucked,
+      splayed: !!pose.frontB?.splayed,
+      color: this.colors.patch
+    });
+
+    // Near legs
+    this.drawLeg(graphics, {
+      topX: hipX + 1,
+      topY: legTopY + 1,
+      footX: hipX + (pose.backA?.dx || 0) + 1,
+      footY: groundY,
+      kneeDrop: pose.backA?.knee || 12,
+      tucked: !!pose.backA?.tucked,
+      splayed: !!pose.backA?.splayed,
+      color: this.colors.fur
+    });
+    this.drawLeg(graphics, {
+      topX: shoulderX + 1,
+      topY: legTopY,
+      footX: shoulderX + (pose.frontA?.dx || 0) + 1,
+      footY: groundY,
+      kneeDrop: pose.frontA?.knee || 12,
+      tucked: !!pose.frontA?.tucked,
+      splayed: !!pose.frontA?.splayed,
+      color: this.colors.fur
+    });
+
+    // Body stripes (subtle)
+    this.drawStripes(graphics, bodyCenterX, bodyCenterY);
+  }
+
+  drawTail(graphics, { baseX, baseY, lift }) {
+    const liftAmount = Math.max(-2, Math.min(3, lift || 0));
+
+    graphics.lineStyle({
+      width: 5,
+      color: this.colors.fur,
+      cap: PIXI.LINE_CAP.ROUND,
+      join: PIXI.LINE_JOIN.ROUND
+    });
+    graphics.moveTo(baseX, baseY);
+    graphics.bezierCurveTo(
+      baseX - 10,
+      baseY - (6 + liftAmount * 3),
+      baseX - 18,
+      baseY - (2 + liftAmount * 4),
+      baseX - 14,
+      baseY + (10 - liftAmount * 2)
+    );
+    graphics.lineStyle(0);
+  }
+
+  drawLeg(graphics, { topX, topY, footX, footY, kneeDrop, tucked, splayed, color }) {
+    const kneeY = tucked ? topY + Math.max(8, kneeDrop - 4) : topY + kneeDrop;
+    const kneeX = splayed ? (topX + footX) / 2 + (footX > topX ? 2 : -2) : (topX + footX) / 2;
+
+    graphics.lineStyle({
+      width: 4,
+      color,
+      cap: PIXI.LINE_CAP.ROUND,
+      join: PIXI.LINE_JOIN.ROUND
+    });
+    graphics.moveTo(topX, topY);
+    graphics.lineTo(kneeX, kneeY);
+    graphics.lineTo(footX, footY - (tucked ? 6 : 0));
+    graphics.lineStyle(0);
+
+    // Paw
+    graphics.beginFill(0x1F1F1F, 0.95);
+    graphics.drawEllipse(footX, footY, 4.5, 2.2);
     graphics.endFill();
   }
 
-  drawLegs(graphics, frontY, backY, pawY, tucked = false, splayed = false) {
-    const frontOffset = tucked ? -2 : 0;
-    const backOffset = tucked ? 2 : 0;
-    const splay = splayed ? 2 : 0;
-
-    graphics.beginFill(this.colors.fur);
-    graphics.drawRect(12, backY + backOffset, 4, 9 + splay);
-    graphics.drawRect(18, frontY + frontOffset, 4, 9 + splay);
-    graphics.drawRect(24, backY + backOffset, 4, 9 + splay);
-    graphics.drawRect(28, frontY + frontOffset, 4, 9 + splay);
-    graphics.endFill();
-
-    graphics.beginFill(0x2B2B2B);
-    graphics.drawRect(11, pawY, 6, 4);
-    graphics.drawRect(17, pawY, 6, 4);
-    graphics.drawRect(23, pawY, 6, 4);
-    graphics.drawRect(27, pawY, 6, 4);
-    graphics.endFill();
-  }
-
-  drawTail(graphics, tailY, tilt = 0) {
-    graphics.beginFill(this.colors.fur);
-    graphics.drawRoundedRect(32, tailY, 8, 16, 4);
-    graphics.endFill();
-    if (tilt !== 0) {
-      graphics.beginFill(this.colors.fur);
-      graphics.drawRoundedRect(30, tailY - 4, 8, 12, 4);
-      graphics.endFill();
-    }
-  }
-
-  drawStripes(graphics) {
-    graphics.beginFill(this.colors.patch);
-    graphics.drawRect(14, 30, 16, 3);
-    graphics.drawRect(16, 35, 14, 2);
-    graphics.drawRect(18, 40, 12, 2);
+  drawStripes(graphics, bodyCenterX, bodyCenterY) {
+    graphics.beginFill(this.colors.patch, 0.55);
+    graphics.drawRoundedRect(bodyCenterX - 2, bodyCenterY - 10, 10, 3, 1);
+    graphics.drawRoundedRect(bodyCenterX - 5, bodyCenterY - 4, 12, 3, 1);
+    graphics.drawRoundedRect(bodyCenterX - 7, bodyCenterY + 2, 10, 3, 1);
     graphics.endFill();
   }
 
