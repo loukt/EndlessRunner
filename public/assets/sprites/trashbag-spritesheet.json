@@ -1,0 +1,35 @@
+{
+  "frames": {
+    "sprite_0.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 65,
+        "h": 85
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 65,
+        "h": 85
+      },
+      "sourceSize": {
+        "x": 65,
+        "y": 85
+      }
+    }
+  },
+  "meta": {
+    "app": "EndlessRunner",
+    "version": "1.0.0",
+    "image": "trashbag.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 453,
+      "h": 340
+    },
+    "scale": "1"
+  }
+}

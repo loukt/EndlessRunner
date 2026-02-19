@@ -60,7 +60,7 @@
   "meta": {
     "app": "EndlessRunner",
     "version": "1.0.0",
-    "image": "cat-spritesheet.png",
+    "image": "blackcat_sprite.png",
     "format": "RGBA8888",
     "size": { "w": 384, "h": 192 },
     "scale": "1"

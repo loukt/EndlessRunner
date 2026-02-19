@@ -47,12 +47,20 @@ export class Player {
    */
   async loadSpritessheet() {
     try {
-      // Fetch metadata from public folder
-      const metadataResponse = await fetch('/assets/sprites/cat-spritesheet.json');
+      const baseUrl = import.meta.env.BASE_URL || '/';
+      const imagePath = baseUrl + 'assets/sprites/Cat-spritecolorful.png';
+      const metadataUrl = baseUrl + 'assets/sprites/cat-spritecolorful-spritesheet.json';
+      
+      // Fetch metadata
+      const metadataResponse = await fetch(metadataUrl);
+      if (!metadataResponse.ok) {
+        throw new Error(`Failed to load metadata: ${metadataResponse.status}`);
+      }
       const metadata = await metadataResponse.json();
       
+      // Create spritesheet and load
       const spritesheet = new PIXI.Spritesheet(
-        PIXI.Texture.from('/assets/sprites/cat-spritesheet.png'),
+        PIXI.Texture.from(imagePath),
         metadata
       );
       await spritesheet.parse();
@@ -66,9 +74,9 @@ export class Player {
       }
       this.spritesheetLoaded = this.frames.length > 0;
     } catch (error) {
-      console.warn('Failed to load spritesheet, using fallback:', error);
+      console.warn('Failed to load spritesheet, using procedural fallback:', error);
       this.spritesheetLoaded = false;
-      // Fallback: create default texture if spritesheet fails
+      // Fallback: create default texture
       if (!this.frames.length) {
         const graphics = new PIXI.Graphics();
         graphics.beginFill(0x8B6914);

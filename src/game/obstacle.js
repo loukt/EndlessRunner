@@ -15,6 +15,9 @@ export class ObstacleManager {
     this.nextSpawnDistance = CONFIG.OBSTACLES.MAX_SPACING;
     this.traveledDistance = 0;
     this.difficultyManager = difficultyManager;
+    this.trashcanTextures = []; // Cache for trash can sprites
+    this.trashcanSpritesheet = null;
+    this.trashbagTexture = null; // Cache for trash bag sprite
   }
 
   /**
@@ -22,10 +25,89 @@ export class ObstacleManager {
    * @param {PIXI.Container} stage - PixiJS stage
    * @param {PIXI.Renderer} renderer - PixiJS renderer for texture generation
    */
-  create(stage, renderer) {
+  async create(stage, renderer) {
     this.container = new PIXI.Container();
+    this.container.name = 'obstacles';
     this.renderer = renderer;
     stage.addChild(this.container);
+    
+    // Ensure container is visible and at correct depth
+    this.container.visible = true;
+    this.container.zIndex = 10;
+    
+    // Load trash can and trash bag sprites
+    await this.loadTrashcanSprites();
+    await this.loadTrashbagSprite();
+  }
+
+  /**
+   * Load trash can sprite sheet
+   */
+  async loadTrashcanSprites() {
+    try {
+      const baseUrl = import.meta.env.BASE_URL || '/';
+      const imagePath = baseUrl + 'assets/sprites/trashcans.png';
+      const metadataUrl = baseUrl + 'assets/sprites/trashcans-spritesheet.json';
+      
+      // Fetch metadata
+      const metadataResponse = await fetch(metadataUrl);
+      if (!metadataResponse.ok) {
+        throw new Error(`Failed to load trash can metadata: ${metadataResponse.status}`);
+      }
+      const metadata = await metadataResponse.json();
+      
+      // Create spritesheet and load
+      this.trashcanSpritesheet = new PIXI.Spritesheet(
+        PIXI.Texture.from(imagePath),
+        metadata
+      );
+      await this.trashcanSpritesheet.parse();
+      
+      // Extract frames in order
+      for (let i = 0; i < 3; i++) {
+        const frameName = `sprite_${i}.png`;
+        if (this.trashcanSpritesheet.textures[frameName]) {
+          this.trashcanTextures.push(this.trashcanSpritesheet.textures[frameName]);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load trash can sprites:', error);
+      this.trashcanTextures = [];
+    }
+  }
+
+  /**
+   * Load trash bag sprite
+   */
+  async loadTrashbagSprite() {
+    try {
+      const baseUrl = import.meta.env.BASE_URL || '/';
+      const imagePath = baseUrl + 'assets/sprites/trashbag.png';
+      const metadataUrl = baseUrl + 'assets/sprites/trashbag-spritesheet.json';
+      
+      // Fetch metadata
+      const metadataResponse = await fetch(metadataUrl);
+      if (!metadataResponse.ok) {
+        throw new Error(`Failed to load trash bag metadata: ${metadataResponse.status}`);
+      }
+      const metadata = await metadataResponse.json();
+      
+      // Create spritesheet and load
+      const spritesheet = new PIXI.Spritesheet(
+        PIXI.Texture.from(imagePath),
+        metadata
+      );
+      await spritesheet.parse();
+      
+      // Extract the single frame
+      const frameName = 'sprite_0.png';
+      if (spritesheet.textures[frameName]) {
+        this.trashbagTexture = spritesheet.textures[frameName];
+      }
+    } catch (error) {
+      console.warn('Failed to load trash bag sprite:', error);
+      this.trashbagTexture = null;
+    }
   }
 
   /**
@@ -34,30 +116,106 @@ export class ObstacleManager {
    * @returns {PIXI.Sprite}
    */
   createObstacle(config = null) {
-    // Get config from difficulty manager if not provided
-    if (!config) {
-      config = this.difficultyManager.getObstacleConfig();
+    try {
+      // Get config from difficulty manager if not provided
+      if (!config) {
+        config = this.difficultyManager.getObstacleConfig();
+      }
+
+      // Check if this is a trash bag and we have sprite loaded
+      const theme = this.getObstacleTheme(config.type);
+      if (theme.key === 'trash_bag' && this.trashbagTexture) {
+        return this.createTrashbagSprite(config, theme);
+      }
+
+      // Check if this is a trash can and we have sprites loaded
+      if (theme.key === 'trash_can' && this.trashcanTextures.length > 0) {
+        return this.createTrashcanSprite(config, theme);
+      }
+
+      // Fall back to procedural drawing for other obstacles
+      const graphics = new PIXI.Graphics();
+      graphics.clear();
+
+      const dimensions = this.getObstacleDimensions(config, theme);
+      this.drawObstacle(graphics, dimensions, theme);
+
+      // Create sprite from graphics (PixiJS v7 API)
+      if (!this.renderer) {
+        throw new Error('Renderer not available for obstacle texture generation');
+      }
+
+      const texture = this.renderer.generateTexture(graphics);
+      const sprite = new PIXI.Sprite(texture);
+      
+      // Verify sprite was created
+      if (!sprite || !texture) {
+        throw new Error('Failed to create sprite or texture');
+      }
+      
+      // Store obstacle data for reference
+      sprite.obstacleType = config.type;
+      sprite.obstacleEffect = theme.effect;
+      sprite.obstacleHeight = dimensions.height;
+      sprite.obstacleWidth = dimensions.width;
+      
+      // Position at right edge of screen, on ground
+      sprite.x = CONFIG.CANVAS.WIDTH;
+      sprite.y = CONFIG.PHYSICS.GROUND_Y - dimensions.height;
+      
+      // Clean up graphics object
+      graphics.destroy();
+      
+      return sprite;
+    } catch (error) {
+      console.error('[OBSTACLE] Failed to create obstacle:', error);
+      return null;
     }
+  }
 
-    const graphics = new PIXI.Graphics();
-
-    const theme = this.getObstacleTheme(config.type);
-    const dimensions = this.getObstacleDimensions(config, theme);
-    this.drawObstacle(graphics, dimensions, theme);
-
-    // Create sprite from graphics (PixiJS v7 API)
-    const texture = this.renderer.generateTexture(graphics);
+  /**
+   * Create a trash can sprite from the sprite sheet
+   * @param {Object} config - Obstacle configuration
+   * @param {Object} theme - Theme data
+   * @returns {PIXI.Sprite}
+   */
+  createTrashcanSprite(config, theme) {
+    // Randomly pick one of the trash can textures
+    const textureIndex = Math.floor(Math.random() * this.trashcanTextures.length);
+    const texture = this.trashcanTextures[textureIndex];
     const sprite = new PIXI.Sprite(texture);
     
     // Store obstacle data for reference
     sprite.obstacleType = config.type;
     sprite.obstacleEffect = theme.effect;
-    sprite.obstacleHeight = dimensions.height;
-    sprite.obstacleWidth = dimensions.width;
+    sprite.obstacleHeight = 93; // Actual frame height
+    sprite.obstacleWidth = 87; // Actual frame width
     
     // Position at right edge of screen, on ground
     sprite.x = CONFIG.CANVAS.WIDTH;
-    sprite.y = CONFIG.PHYSICS.GROUND_Y - dimensions.height;
+    sprite.y = CONFIG.PHYSICS.GROUND_Y - 93;
+    
+    return sprite;
+  }
+
+  /**
+   * Create a trash bag sprite from the sprite sheet
+   * @param {Object} config - Obstacle configuration
+   * @param {Object} theme - Theme data
+   * @returns {PIXI.Sprite}
+   */
+  createTrashbagSprite(config, theme) {
+    const sprite = new PIXI.Sprite(this.trashbagTexture);
+    
+    // Store obstacle data for reference
+    sprite.obstacleType = config.type;
+    sprite.obstacleEffect = theme.effect;
+    sprite.obstacleHeight = 85; // Actual frame height
+    sprite.obstacleWidth = 65; // Actual frame width
+    
+    // Position at right edge of screen, on ground
+    sprite.x = CONFIG.CANVAS.WIDTH;
+    sprite.y = CONFIG.PHYSICS.GROUND_Y - 85;
     
     return sprite;
   }
@@ -90,6 +248,7 @@ export class ObstacleManager {
 
     // Spawn new obstacle if needed
     if (this.traveledDistance >= this.nextSpawnDistance) {
+      console.warn(`[UPDATE] Spawning obstacle: traveled=${this.traveledDistance.toFixed(0)} >= nextSpawn=${this.nextSpawnDistance.toFixed(0)}`);
       this.spawnObstacle();
     }
 
@@ -106,8 +265,13 @@ export class ObstacleManager {
     } else {
       // Spawn single obstacle
       const obstacle = this.createObstacle();
-      this.container.addChild(obstacle);
-      this.obstacles.push(obstacle);
+      if (obstacle && obstacle.texture) {
+        this.container.addChild(obstacle);
+        this.obstacles.push(obstacle);
+        console.warn(`[OBSTACLE] Spawned at traveledDistance=${this.traveledDistance.toFixed(0)}, nextSpawn=${this.nextSpawnDistance.toFixed(0)}`);
+      } else {
+        console.error('[OBSTACLE] Failed to create obstacle - invalid texture');
+      }
     }
 
     // Calculate next spawn distance using difficulty manager
@@ -115,6 +279,7 @@ export class ObstacleManager {
     const variance = this.difficultyManager.getSpawnVariance();
     
     this.nextSpawnDistance = this.traveledDistance + spacing + variance;
+    console.warn(`[OBSTACLE] Next spawn at ${this.nextSpawnDistance.toFixed(0)} (spacing=${spacing.toFixed(0)}, variance=${variance.toFixed(0)})`, this.nextSpawnDistance);
   }
 
   /**

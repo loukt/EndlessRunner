@@ -1,0 +1,75 @@
+{
+  "frames": {
+    "sprite_0.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 93
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 93
+      },
+      "sourceSize": {
+        "x": 87,
+        "y": 93
+      }
+    },
+    "sprite_1.png": {
+      "frame": {
+        "x": 87,
+        "y": 0,
+        "w": 87,
+        "h": 93
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 93
+      },
+      "sourceSize": {
+        "x": 87,
+        "y": 93
+      }
+    },
+    "sprite_2.png": {
+      "frame": {
+        "x": 0,
+        "y": 93,
+        "w": 87,
+        "h": 93
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 87,
+        "h": 93
+      },
+      "sourceSize": {
+        "x": 87,
+        "y": 93
+      }
+    }
+  },
+  "meta": {
+    "app": "EndlessRunner",
+    "version": "1.0.0",
+    "image": "trashcans.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 260,
+      "h": 280
+    },
+    "scale": "1"
+  }
+}

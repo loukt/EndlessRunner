@@ -190,7 +190,7 @@ class Game {
 
     // Create obstacle manager with difficulty manager
     this.obstacleManager = new ObstacleManager(this.difficultyManager);
-    this.obstacleManager.create(stage, pixiRenderer);
+    await this.obstacleManager.create(stage, pixiRenderer);
 
     // Create coin manager
     this.coinManager = new CoinManager();
