@@ -2,22 +2,22 @@
   "frames": {
     "sprite_0.png": {
       "frame": {
-        "x": 0,
+        "x": 55,
         "y": 0,
-        "w": 65,
-        "h": 85
+        "w": 343,
+        "h": 340
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 65,
-        "h": 85
+        "w": 343,
+        "h": 340
       },
       "sourceSize": {
-        "x": 65,
-        "y": 85
+        "x": 343,
+        "y": 340
       }
     }
   },

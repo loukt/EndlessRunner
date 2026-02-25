@@ -2,62 +2,62 @@
   "frames": {
     "sprite_0.png": {
       "frame": {
-        "x": 0,
-        "y": 0,
-        "w": 87,
-        "h": 93
+        "x": 48,
+        "y": 122,
+        "w": 44,
+        "h": 52
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 87,
-        "h": 93
+        "w": 44,
+        "h": 52
       },
       "sourceSize": {
-        "x": 87,
-        "y": 93
+        "x": 44,
+        "y": 52
       }
     },
     "sprite_1.png": {
       "frame": {
-        "x": 87,
-        "y": 0,
-        "w": 87,
-        "h": 93
+        "x": 101,
+        "y": 122,
+        "w": 46,
+        "h": 52
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 87,
-        "h": 93
+        "w": 46,
+        "h": 52
       },
       "sourceSize": {
-        "x": 87,
-        "y": 93
+        "x": 46,
+        "y": 52
       }
     },
     "sprite_2.png": {
       "frame": {
-        "x": 0,
-        "y": 93,
-        "w": 87,
-        "h": 93
+        "x": 154,
+        "y": 122,
+        "w": 60,
+        "h": 52
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 87,
-        "h": 93
+        "w": 60,
+        "h": 52
       },
       "sourceSize": {
-        "x": 87,
-        "y": 93
+        "x": 60,
+        "y": 52
       }
     }
   },

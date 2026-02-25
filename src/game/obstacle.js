@@ -20,6 +20,81 @@ export class ObstacleManager {
     this.trashbagTexture = null; // Cache for trash bag sprite
   }
 
+  async loadColorKeyTexture(imageUrl, { tolerance = 8 } = {}) {
+    // Load the image into a canvas and treat the dominant corner color as background.
+    // This is needed because the provided trash sprites are fully opaque (no alpha channel).
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error(`Failed to load image: ${imageUrl}`));
+      image.src = imageUrl;
+    });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) {
+      // Fall back to the original image texture if canvas isn't available
+      return PIXI.Texture.from(imageUrl);
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const { data, width, height } = imageData;
+
+    const getPixel = (x, y) => {
+      const i = (y * width + x) * 4;
+      return { r: data[i], g: data[i + 1], b: data[i + 2], a: data[i + 3] };
+    };
+
+    const corners = [
+      getPixel(0, 0),
+      getPixel(width - 1, 0),
+      getPixel(0, height - 1),
+      getPixel(width - 1, height - 1)
+    ];
+
+    const keyOf = (c) => `${c.r},${c.g},${c.b},${c.a}`;
+    const counts = new Map();
+    for (const c of corners) {
+      const k = keyOf(c);
+      counts.set(k, (counts.get(k) || 0) + 1);
+    }
+    let bgKey = null;
+    let best = -1;
+    for (const [k, v] of counts.entries()) {
+      if (v > best) {
+        best = v;
+        bgKey = k;
+      }
+    }
+    const [bgR, bgG, bgB, bgA] = bgKey.split(',').map(n => Number(n));
+
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
+
+      const isBg =
+        Math.abs(r - bgR) <= tolerance &&
+        Math.abs(g - bgG) <= tolerance &&
+        Math.abs(b - bgB) <= tolerance &&
+        Math.abs(a - bgA) <= tolerance;
+
+      if (isBg) {
+        data[i + 3] = 0;
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    return PIXI.Texture.from(canvas);
+  }
+
   /**
    * Initialize obstacle container
    * @param {PIXI.Container} stage - PixiJS stage
@@ -58,7 +133,7 @@ export class ObstacleManager {
       
       // Create spritesheet and load
       this.trashcanSpritesheet = new PIXI.Spritesheet(
-        PIXI.Texture.from(imagePath),
+        await this.loadColorKeyTexture(imagePath),
         metadata
       );
       await this.trashcanSpritesheet.parse();
@@ -94,7 +169,7 @@ export class ObstacleManager {
       
       // Create spritesheet and load
       const spritesheet = new PIXI.Spritesheet(
-        PIXI.Texture.from(imagePath),
+        await this.loadColorKeyTexture(imagePath),
         metadata
       );
       await spritesheet.parse();
@@ -184,16 +259,26 @@ export class ObstacleManager {
     const textureIndex = Math.floor(Math.random() * this.trashcanTextures.length);
     const texture = this.trashcanTextures[textureIndex];
     const sprite = new PIXI.Sprite(texture);
+
+    const sourceW = Math.max(1, texture.width || sprite.width || 1);
+    const sourceH = Math.max(1, texture.height || sprite.height || 1);
+    const targetW = Math.max(1, config.width);
+    const targetH = Math.max(1, config.height);
+    const scale = Math.min(targetW / sourceW, targetH / sourceH);
+    sprite.scale.set(scale);
+
+    const spriteWidth = Math.max(1, Math.round(sourceW * scale));
+    const spriteHeight = Math.max(1, Math.round(sourceH * scale));
     
     // Store obstacle data for reference
     sprite.obstacleType = config.type;
     sprite.obstacleEffect = theme.effect;
-    sprite.obstacleHeight = 93; // Actual frame height
-    sprite.obstacleWidth = 87; // Actual frame width
+    sprite.obstacleHeight = spriteHeight;
+    sprite.obstacleWidth = spriteWidth;
     
     // Position at right edge of screen, on ground
     sprite.x = CONFIG.CANVAS.WIDTH;
-    sprite.y = CONFIG.PHYSICS.GROUND_Y - 93;
+    sprite.y = CONFIG.PHYSICS.GROUND_Y - spriteHeight;
     
     return sprite;
   }
@@ -206,16 +291,26 @@ export class ObstacleManager {
    */
   createTrashbagSprite(config, theme) {
     const sprite = new PIXI.Sprite(this.trashbagTexture);
+
+    const sourceW = Math.max(1, this.trashbagTexture.width || sprite.width || 1);
+    const sourceH = Math.max(1, this.trashbagTexture.height || sprite.height || 1);
+    const targetW = Math.max(1, config.width);
+    const targetH = Math.max(1, config.height);
+    const scale = Math.min(targetW / sourceW, targetH / sourceH);
+    sprite.scale.set(scale);
+
+    const spriteWidth = Math.max(1, Math.round(sourceW * scale));
+    const spriteHeight = Math.max(1, Math.round(sourceH * scale));
     
     // Store obstacle data for reference
     sprite.obstacleType = config.type;
     sprite.obstacleEffect = theme.effect;
-    sprite.obstacleHeight = 85; // Actual frame height
-    sprite.obstacleWidth = 65; // Actual frame width
+    sprite.obstacleHeight = spriteHeight;
+    sprite.obstacleWidth = spriteWidth;
     
     // Position at right edge of screen, on ground
     sprite.x = CONFIG.CANVAS.WIDTH;
-    sprite.y = CONFIG.PHYSICS.GROUND_Y - 85;
+    sprite.y = CONFIG.PHYSICS.GROUND_Y - spriteHeight;
     
     return sprite;
   }
@@ -248,7 +343,6 @@ export class ObstacleManager {
 
     // Spawn new obstacle if needed
     if (this.traveledDistance >= this.nextSpawnDistance) {
-      console.warn(`[UPDATE] Spawning obstacle: traveled=${this.traveledDistance.toFixed(0)} >= nextSpawn=${this.nextSpawnDistance.toFixed(0)}`);
       this.spawnObstacle();
     }
 
@@ -268,7 +362,6 @@ export class ObstacleManager {
       if (obstacle && obstacle.texture) {
         this.container.addChild(obstacle);
         this.obstacles.push(obstacle);
-        console.warn(`[OBSTACLE] Spawned at traveledDistance=${this.traveledDistance.toFixed(0)}, nextSpawn=${this.nextSpawnDistance.toFixed(0)}`);
       } else {
         console.error('[OBSTACLE] Failed to create obstacle - invalid texture');
       }
@@ -279,7 +372,6 @@ export class ObstacleManager {
     const variance = this.difficultyManager.getSpawnVariance();
     
     this.nextSpawnDistance = this.traveledDistance + spacing + variance;
-    console.warn(`[OBSTACLE] Next spawn at ${this.nextSpawnDistance.toFixed(0)} (spacing=${spacing.toFixed(0)}, variance=${variance.toFixed(0)})`, this.nextSpawnDistance);
   }
 
   /**

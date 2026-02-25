@@ -67,10 +67,16 @@ export class Player {
       
       // Extract frames in order
       for (let i = 0; i < 8; i++) {
-        const frameName = `cat_${i}.png`;
+        const frameName = `sprite_${i}.png`;
         if (spritesheet.textures[frameName]) {
           this.frames.push(spritesheet.textures[frameName]);
         }
+      }
+
+      // Keep indices in range even if we end up with fewer frames
+      if (this.frames.length > 0) {
+        this.jumpFrameIndex = Math.min(this.jumpFrameIndex, this.frames.length - 1);
+        this.landFrameIndex = Math.min(this.landFrameIndex, this.frames.length - 1);
       }
       this.spritesheetLoaded = this.frames.length > 0;
     } catch (error) {
@@ -111,9 +117,15 @@ export class Player {
       this.sprite = new PIXI.Sprite(this.frames[0]);
       this.stage.addChild(this.sprite);
       this.sprite.x = CONFIG.PLAYER.START_X;
-      this.sprite.y = CONFIG.PHYSICS.GROUND_Y - 60;
+      this.sprite.y = CONFIG.PHYSICS.GROUND_Y - CONFIG.PLAYER.HEIGHT;
       this.sprite.tint = 0xFFFFFF;
-      this.sprite.scale.set(0.6); // Scale down sprite sheet frames
+    }
+
+    // Keep sprite roughly aligned with the gameplay hitbox
+    const textureHeight = this.sprite.texture?.height || 0;
+    if (textureHeight > 0) {
+      const scale = CONFIG.PLAYER.HEIGHT / textureHeight;
+      this.sprite.scale.set(scale);
     }
 
     this.frameIndex = 0;
